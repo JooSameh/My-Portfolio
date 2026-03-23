@@ -1,9 +1,11 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
-import { Skills } from './components/Skills';
-import { Projects } from './components/Projects';
 import { Education } from './components/Education';
+import { Experience } from './components/Experience';
+import { Projects } from './components/Projects';
+import { Certifications } from './components/Certifications';
+import { Skills } from './components/Skills';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
@@ -35,9 +37,11 @@ export default function App() {
       <main>
         <Hero />
         <About />
-        <Skills />
-        <Projects />
         <Education />
+        <Experience />
+        <Projects />
+        <Certifications />
+        <Skills />
         <Contact />
       </main>
       <Footer />

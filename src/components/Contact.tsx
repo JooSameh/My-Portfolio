@@ -110,7 +110,7 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="text-white orbitron">Location</h4>
-                  <span className="text-gray-400 fira-code text-sm">Cairo, Egypt</span>
+                  <span className="text-gray-400 fira-code text-sm">27 Ammar Hassan St. - Ezz El Din Omar Ext., Cairo, Egypt</span>
                 </div>
               </motion.div>
             </div>
@@ -120,14 +120,18 @@ export function Contact() {
               <h4 className="text-white mb-4 orbitron">Follow Me</h4>
               <div className="flex space-x-4">
                 <motion.a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/in/youssef-sameh-1b6b95369/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(0, 245, 255, 0.5)' }}
                   className="w-12 h-12 glass-strong rounded-lg flex items-center justify-center border border-[#00F5FF]/40 transition-all"
                 >
                   <Linkedin className="text-[#00F5FF]" size={20} />
                 </motion.a>
                 <motion.a
-                  href="https://github.com"
+                  href="https://github.com/JooSameh"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(57, 255, 20, 0.5)' }}
                   className="w-12 h-12 glass-strong rounded-lg flex items-center justify-center border border-[#39FF14]/40 transition-all"
                 >

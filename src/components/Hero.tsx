@@ -170,14 +170,18 @@ export function Hero() {
               <Terminal size={16} className="text-[#00F5FF]" />
             </motion.a>
             <motion.a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/youssef-sameh-1b6b95369/"
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.1 }}
               className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue"
             >
               <Wifi size={16} className="text-[#00F5FF]" />
             </motion.a>
             <motion.a
-              href="https://github.com"
+              href="https://github.com/JooSameh"
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.1 }}
               className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue"
             >
@@ -423,21 +427,21 @@ export function Hero() {
                   }}
                   transition={{ duration: 4, repeat: Infinity }}
                 >
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1660644807804-ffacfd7a4137?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjeWJlcnNlY3VyaXR5JTIwcHJvZmVzc2lvbmFsJTIwaGVhZHNob3R8ZW58MXx8fHwxNzU4OTkwNDUwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                    alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Holographic Overlay */}
-                  <div className="absolute inset-0 holographic opacity-40" />
-                  
-                  {/* Scanning Lines */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00F5FF]/30 to-transparent h-8"
-                    animate={{ y: ['-2rem', '24rem'] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  />
+                   <img
+                     src="figma:asset/f97af8db2714449f11797188bda3b2b562bbe8f1.png"
+                     alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
+                     className="w-full h-full object-cover"
+                   />
+                   
+                   {/* Holographic Overlay */}
+                   <div className="absolute inset-0 holographic opacity-40" />
+                   
+                   {/* Scanning Lines */}
+                   <motion.div
+                     className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00F5FF]/30 to-transparent h-8"
+                     animate={{ y: ['-2rem', '24rem'] }}
+                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                   />
                 </motion.div>
 
                 {/* Floating Tech Icons */}

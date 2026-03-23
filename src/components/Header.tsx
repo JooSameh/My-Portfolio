@@ -53,9 +53,11 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-1">
             {[
               { id: 'about', label: 'About' },
-              { id: 'skills', label: 'Skills' },
-              { id: 'projects', label: 'Projects' },
               { id: 'education', label: 'Education' },
+              { id: 'experience', label: 'Experience' },
+              { id: 'projects', label: 'Projects' },
+              { id: 'certifications', label: 'Certificates' },
+              { id: 'skills', label: 'Skills' },
               { id: 'contact', label: 'Contact' }
             ].map((section) => (
               <motion.button
@@ -91,7 +93,9 @@ export function Header() {
                 <Mail size={16} className="text-[#00F5FF]" />
               </motion.a>
               <motion.a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/in/youssef-sameh-1b6b95369/" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -99,7 +103,9 @@ export function Header() {
                 <Linkedin size={16} className="text-[#00F5FF]" />
               </motion.a>
               <motion.a 
-                href="https://github.com" 
+                href="https://github.com/JooSameh" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -142,9 +148,11 @@ export function Header() {
             <nav className="grid grid-cols-2 gap-3 mb-4">
               {[
                 { id: 'about', label: 'About', icon: Terminal },
-                { id: 'skills', label: 'Skills', icon: Cpu },
-                { id: 'projects', label: 'Projects', icon: Shield },
                 { id: 'education', label: 'Education', icon: Terminal },
+                { id: 'experience', label: 'Experience', icon: Shield },
+                { id: 'projects', label: 'Projects', icon: Cpu },
+                { id: 'certifications', label: 'Certificates', icon: Shield },
+                { id: 'skills', label: 'Skills', icon: Shield },
                 { id: 'contact', label: 'Contact', icon: Mail }
               ].map((section, index) => (
                 <motion.button
@@ -174,14 +182,18 @@ export function Header() {
                 <Mail size={18} className="text-[#00F5FF]" />
               </motion.a>
               <motion.a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/in/youssef-sameh-1b6b95369/" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >
                 <Linkedin size={18} className="text-[#00F5FF]" />
               </motion.a>
               <motion.a 
-                href="https://github.com" 
+                href="https://github.com/JooSameh" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >
