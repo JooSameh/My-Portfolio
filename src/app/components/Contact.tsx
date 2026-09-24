@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin, Linkedin, Github, Send, MessageSquare } from 'luci
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { motion } from 'motion/react';
 
 export function Contact() {
@@ -11,22 +11,66 @@ export function Contact() {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    botField: '' // Honeypot field for bot protection
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Data Obfuscation to prevent scraping bots from grabbing your email/phone directly
+  const contactInfo = {
+    emailUser: 'youssefs.sec',
+    emailDomain: 'gmail.com',
+    phoneCode: '+20',
+    phoneNumber: '106 997 5376'
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulate form submission
-    toast.success('Message sent successfully! I\'ll get back to you soon.');
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: ''
-    });
+    // 1. Bot Protection (Honeypot Check)
+    if (formData.botField !== '') {
+      console.warn('Bot submission detected and blocked.');
+      return; // Silently fail
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 2. Real API Call
+      const response = await fetch('http://localhost:8000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message
+        })
+      });
+
+      if (!response.ok) {
+         if (response.status === 429) {
+            throw new Error('أرسلت طلبات كثيرة. يرجى المحاولة لاحقاً.');
+         }
+         throw new Error('فشل إرسال الرسالة');
+      }
+
+      toast.success('Message sent successfully! I\'ll get back to you soon.');
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+        botField: ''
+      });
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred while sending the message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -80,8 +124,8 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="text-white orbitron">Email</h4>
-                  <a href="mailto:youssefs.sec@gmail.com" className="text-gray-400 hover:text-[#00F5FF] transition-colors fira-code text-sm">
-                    youssefs.sec@gmail.com
+                  <a href={`mailto:${contactInfo.emailUser}@${contactInfo.emailDomain}`} className="text-gray-400 hover:text-[#00F5FF] transition-colors fira-code text-sm">
+                    {contactInfo.emailUser}@{contactInfo.emailDomain}
                   </a>
                 </div>
               </motion.div>
@@ -95,8 +139,8 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="text-white orbitron">Phone</h4>
-                  <a href="tel:+201069975376" className="text-gray-400 hover:text-[#39FF14] transition-colors fira-code text-sm">
-                    +20 106 997 5376
+                  <a href={`tel:${contactInfo.phoneCode}${contactInfo.phoneNumber.replace(/\s/g, '')}`} className="text-gray-400 hover:text-[#39FF14] transition-colors fira-code text-sm">
+                    {contactInfo.phoneCode} {contactInfo.phoneNumber}
                   </a>
                 </div>
               </motion.div>
@@ -137,31 +181,8 @@ export function Contact() {
                 >
                   <Github className="text-[#39FF14]" size={20} />
                 </motion.a>
-                <motion.a
-                  href="mailto:youssefs.sec@gmail.com"
-                  whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(176, 38, 255, 0.5)' }}
-                  className="w-12 h-12 glass-strong rounded-lg flex items-center justify-center border border-[#B026FF]/40 transition-all"
-                >
-                  <MessageSquare className="text-[#B026FF]" size={20} />
-                </motion.a>
               </div>
             </div>
-
-            {/* Availability Status */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="glass-strong p-6 rounded-lg border border-[#39FF14]/20"
-            >
-              <h4 className="text-white mb-3 orbitron">Current Status</h4>
-              <div className="flex items-center mb-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full mr-3 animate-pulse"></div>
-                <span className="text-green-400 fira-code text-sm">Available for opportunities</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Currently open to cybersecurity consulting, technical instruction roles, 
-                AI development projects, and speaking engagements.
-              </p>
-            </motion.div>
           </motion.div>
 
           {/* Contact Form */}
@@ -174,6 +195,20 @@ export function Contact() {
             <h3 className="text-2xl text-white mb-8 orbitron">Send a Message</h3>
             
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Honeypot Field - Hidden from real users */}
+              <div style={{ display: 'none' }} aria-hidden="true">
+                <label htmlFor="botField">Don't fill this out if you're human:</label>
+                <Input
+                  type="text"
+                  id="botField"
+                  name="botField"
+                  value={formData.botField}
+                  onChange={handleChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-sm text-gray-400 mb-2 fira-code">
@@ -185,6 +220,7 @@ export function Contact() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    maxLength={100} // Input constraint
                     className="glass-strong border-[#00F5FF]/20 text-white placeholder:text-gray-500 focus:border-[#00F5FF] fira-code"
                     placeholder="Enter your name"
                     required
@@ -200,6 +236,7 @@ export function Contact() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    maxLength={150} // Input constraint
                     className="glass-strong border-[#00F5FF]/20 text-white placeholder:text-gray-500 focus:border-[#00F5FF] fira-code"
                     placeholder="your.email@example.com"
                     required
@@ -217,6 +254,7 @@ export function Contact() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
+                  maxLength={150} // Input constraint
                   className="glass-strong border-[#00F5FF]/20 text-white placeholder:text-gray-500 focus:border-[#00F5FF] fira-code"
                   placeholder="What's this about?"
                   required
@@ -233,19 +271,25 @@ export function Contact() {
                   value={formData.message}
                   onChange={handleChange}
                   rows={6}
+                  maxLength={2000} // Input constraint to prevent massive payloads
                   className="glass-strong border-[#00F5FF]/20 text-white placeholder:text-gray-500 focus:border-[#00F5FF] resize-none fira-code"
                   placeholder="Tell me about your project, opportunity, or just say hello..."
                   required
                 />
+                {/* Character Counter */}
+                <div className="text-right mt-1 text-xs text-gray-500">
+                  {formData.message.length} / 2000
+                </div>
               </div>
 
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button 
                   type="submit"
-                  className="w-full glass-strong border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/20 hover:neon-blue orbitron"
+                  disabled={isSubmitting}
+                  className="w-full glass-strong border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/20 hover:neon-blue orbitron disabled:opacity-50"
                 >
                   <Send size={16} className="mr-2" />
-                  Send Message
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </motion.div>
             </form>
