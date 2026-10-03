@@ -38,7 +38,7 @@ export function Contact() {
 
     try {
       // 2. Real API Call
-      const response = await fetch('http://localhost:8000/api/contact', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -164,7 +164,7 @@ export function Contact() {
               <h4 className="text-white mb-4 orbitron">Follow Me</h4>
               <div className="flex space-x-4">
                 <motion.a
-                  href="https://www.linkedin.com/in/youssef-sameh-1b6b95369/"
+                  href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(0, 245, 255, 0.5)' }}

@@ -24,7 +24,7 @@ export function Skills() {
     {
       title: "Software & Tools",
       icon: <Code className="text-[#FF073A]" size={24} />,
-      skills: ["Microsoft Office Suite", "Expert Excel", "PowerPoint", "Word", "Professional Scriptwriting"],
+      skills: ["Scapy (Packet Analysis)", "SQLite (Secure DB)", "XSS Mitigation Tools", "Burp Suite", "Professional Scriptwriting"],
       color: '#FF073A'
     },
     {

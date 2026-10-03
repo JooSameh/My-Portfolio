@@ -93,13 +93,27 @@ export function About() {
                   <span className="text-gray-400">Martial Arts:</span>
                   <span className="text-[#00F5FF]">2nd Dan Black Belt</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-400">LinkedIn:</span>
-                  <span className="text-[#00F5FF] text-sm">Available upon request</span>
+                  <a
+                    href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00F5FF] hover:underline hover:text-white transition-colors text-sm fira-code"
+                  >
+                    youssef-el-gendy
+                  </a>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-400">GitHub:</span>
-                  <span className="text-[#00F5FF] text-sm">Available upon request</span>
+                  <a
+                    href="https://github.com/JooSameh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#39FF14] hover:underline hover:text-white transition-colors text-sm fira-code"
+                  >
+                    github.com/JooSameh
+                  </a>
                 </div>
               </div>
             </div>
@@ -115,7 +129,7 @@ export function About() {
           className="flex justify-center mb-16"
         >
           <motion.a
-            href="https://www.linkedin.com/in/youssef-sameh-1b6b95369/"
+            href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
             target="_blank"
             rel="noopener noreferrer"
             className="glass-strong px-8 py-4 rounded-full orbitron border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/20 hover:neon-blue transition-all duration-300 flex items-center gap-3"
