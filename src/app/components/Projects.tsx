@@ -1,5 +1,5 @@
 import { ExternalLink, Github, Shield, Network, Globe, Brain, Users } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ImageWithFallback } from './ImageWithFallback';
 import { Button } from './ui/button';
 import { motion } from 'motion/react';
 
@@ -18,7 +18,7 @@ export function Projects() {
     {
       title: "Academic Web Portal Vulnerability Assessment",
       description: "Conducted comprehensive security audits on academic web portals to identify and document critical vulnerabilities. Performed systematic penetration testing including SQL injection, XSS, and authentication bypass assessments.",
-      image: "https://images.unsplash.com/photo-1483817101829-339b08e8d83f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuZXR3b3JrJTIwc2VjdXJpdHklMjBjb2Rpbmd8ZW58MXx8fHwxNzU4OTkwNDUzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      image: "https://images.unsplash.com/photo-1483817101829-339b08e8d83f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
       tools: ["Nmap", "Metasploit", "Burp Suite", "OWASP Testing", "Vulnerability Research"],
       outcome: "Identified and reported multiple critical vulnerabilities. Created detailed remediation reports with step-by-step security improvements, leading to enhanced portal security.",
       github: null,

@@ -4,18 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { z } from 'zod'
 
-function figmaAssetResolver() {
-  return {
-    name: 'figma-asset-resolver',
-    resolveId(id) {
-      if (id.startsWith('figma:asset/')) {
-        const filename = id.replace('figma:asset/', '')
-        return path.resolve(__dirname, 'src/assets', filename)
-      }
-    },
-  }
-}
-
 const ContactSchema = z.object({
   name: z.string().trim().min(1, 'Name cannot be empty').max(100, 'Name must be 100 characters or fewer'),
   email: z.string().trim().email('Invalid email address').max(150, 'Email must be 150 characters or fewer'),
@@ -143,9 +131,6 @@ function apiPlugin() {
 export default defineConfig({
   plugins: [
     apiPlugin(),
-    figmaAssetResolver(),
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
   ],
