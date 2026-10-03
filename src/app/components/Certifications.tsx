@@ -1,14 +1,13 @@
-import { Award, Eye, ShieldCheck, CheckCircle2, Sparkles, Upload, FileImage, Trash2 } from 'lucide-react';
+import { Award, Eye, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { CertificateModal, CertificateData } from './CertificateModal';
 
 export function Certifications() {
   const [selectedCertId, setSelectedCertId] = useState<string | null>(null);
 
-  // Load custom attached images from localStorage
-  const [customImages, setCustomImages] = useState<Record<string, string>>(() => {
+  // Preserve any custom attached images from localStorage
+  const [customImages] = useState<Record<string, string>>(() => {
     const saved: Record<string, string> = {};
     try {
       for (let i = 1; i <= 11; i++) {
@@ -113,44 +112,6 @@ export function Certifications() {
     }
   ];
 
-  const handleUploadCertImage = (certId: string, file: File) => {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('يرجى اختيار ملف صورة صالح (PNG, JPG, WebP)');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 5 ميجابايت');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      try {
-        localStorage.setItem(`cert_image_${certId}`, dataUrl);
-        setCustomImages(prev => ({ ...prev, [certId]: dataUrl }));
-        toast.success('تم إرفاق صورة الشهادة بنجاح!');
-      } catch {
-        toast.error('تعذر حفظ الصورة، قد تكون مساحة التخزين المحلية ممتلئة');
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveCertImage = (certId: string) => {
-    try {
-      localStorage.removeItem(`cert_image_${certId}`);
-      setCustomImages(prev => {
-        const next = { ...prev };
-        delete next[certId];
-        return next;
-      });
-      toast.info('تمت إزالة صورة الشهادة المرفقة');
-    } catch {
-      // ignore
-    }
-  };
-
   // Build active certificate data for modal
   const selectedCert = rawCertificates.find(c => c.id === selectedCertId);
   const activeModalData: CertificateData | null = selectedCert ? {
@@ -159,8 +120,7 @@ export function Certifications() {
     issuer: selectedCert.issuer,
     category: selectedCert.category,
     color: selectedCert.color,
-    imageUrl: customImages[selectedCert.id] || selectedCert.defaultUrl,
-    isCustom: !!customImages[selectedCert.id]
+    imageUrl: customImages[selectedCert.id] || selectedCert.defaultUrl
   } : null;
 
   return (
@@ -182,7 +142,7 @@ export function Certifications() {
           </h2>
           <div className="w-20 h-1 bg-[#00F5FF] mx-auto mb-6 neon-blue"></div>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Professional certifications and verified credentials. You can click on any certificate to inspect details or attach its official image directly.
+            Professional certifications and verified credentials across offensive security, media broadcasting, technology, and banking
           </p>
         </motion.div>
 
@@ -216,9 +176,6 @@ export function Certifications() {
                         alt={cert.title}
                         className="max-h-full max-w-full object-contain rounded-lg border border-[#00F5FF]/30 shadow-lg group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute bottom-2 left-2 z-10 px-2 py-0.5 rounded text-[10px] bg-[#39FF14]/20 border border-[#39FF14]/50 text-[#39FF14] fira-code">
-                        مرفقة ✓
-                      </div>
                     </div>
                   ) : (
                     /* Glowing Emblem Placeholder */
@@ -269,7 +226,7 @@ export function Certifications() {
                   </div>
                 </div>
 
-                {/* Certificate Info & Action Bar */}
+                {/* Certificate Info & Footer */}
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 className="text-white mb-2 orbitron text-sm font-semibold leading-snug group-hover:text-[#00F5FF] transition-colors">
@@ -280,40 +237,15 @@ export function Certifications() {
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-[#00F5FF]/10 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1 text-xs text-[#39FF14] fira-code">
+                  <div className="pt-3 border-t border-[#00F5FF]/10 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs text-[#39FF14] fira-code">
                       <ShieldCheck size={14} />
-                      <span>معتمدة</span>
+                      <span>معتمدة وموثقة</span>
                     </div>
 
-                    {/* Quick Attach Image Button on Card */}
-                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                      <label
-                        className="px-2.5 py-1 glass-strong rounded-lg border border-[#00F5FF]/40 hover:border-[#00F5FF] text-[#00F5FF] hover:bg-[#00F5FF]/15 text-xs fira-code flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
-                        title="إرفاق صورة للشهادة من جهازك"
-                      >
-                        <Upload size={12} />
-                        <span>{hasCustomImage ? 'تغيير' : 'إرفاق'}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleUploadCertImage(cert.id, file);
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-
-                      {hasCustomImage && (
-                        <button
-                          onClick={() => handleRemoveCertImage(cert.id)}
-                          className="p-1 glass-strong rounded-lg border border-[#FF073A]/40 text-[#FF073A] hover:bg-[#FF073A]/20 transition-colors"
-                          title="حذف الصورة المرفقة"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      )}
+                    <div className="text-xs text-[#00F5FF] fira-code flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <span>تفاصيل</span>
+                      <span>←</span>
                     </div>
                   </div>
                 </div>
@@ -321,24 +253,6 @@ export function Certifications() {
             );
           })}
         </div>
-
-        {/* Development Note */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-12 text-center"
-        >
-          <div className="glass-strong border border-[#00F5FF]/30 rounded-xl p-6 max-w-2xl mx-auto">
-            <div className="flex items-center justify-center gap-2 mb-2 text-[#00F5FF]">
-              <Sparkles size={18} />
-              <h4 className="text-lg text-white orbitron">إرفاق ومعاينة الشهادات</h4>
-            </div>
-            <p className="text-gray-300 text-sm fira-code leading-relaxed">
-              يمكنك الآن الضغط على زر <span className="text-[#00F5FF] font-semibold">«إرفاق»</span> عند أي شهادة لرفع صورتها مباشرة من جهازك، أو الضغط على الكارت لفتح المعاينة الكبيرة وإرفاق الصورة من داخلها. الصور تُحفظ تلقائياً في متصفحك!
-            </p>
-          </div>
-        </motion.div>
       </div>
 
       {/* Cyberpunk Lightbox / Modal Component */}
@@ -346,8 +260,6 @@ export function Certifications() {
         isOpen={selectedCertId !== null}
         onClose={() => setSelectedCertId(null)}
         certificate={activeModalData}
-        onUploadImage={handleUploadCertImage}
-        onRemoveImage={handleRemoveCertImage}
       />
     </section>
   );

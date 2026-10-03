@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Award, ExternalLink, ShieldCheck, CheckCircle2, FileImage, Upload, Trash2, RotateCcw } from 'lucide-react';
+import { X, Award, ExternalLink, ShieldCheck, CheckCircle2, FileImage } from 'lucide-react';
 
 export interface CertificateData {
   id: string;
@@ -9,27 +9,21 @@ export interface CertificateData {
   category: string;
   color: string;
   imageUrl: string;
-  isCustom?: boolean;
 }
 
 interface CertificateModalProps {
   isOpen: boolean;
   onClose: () => void;
   certificate: CertificateData | null;
-  onUploadImage?: (certId: string, file: File) => void;
-  onRemoveImage?: (certId: string) => void;
 }
 
 export function CertificateModal({ 
   isOpen, 
   onClose, 
-  certificate,
-  onUploadImage,
-  onRemoveImage 
+  certificate
 }: CertificateModalProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset image states when certificate changes or its imageUrl updates
   useEffect(() => {
@@ -53,15 +47,6 @@ export function CertificateModal({
   }, [isOpen, onClose]);
 
   if (!isOpen || !certificate) return null;
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onUploadImage) {
-      onUploadImage(certificate.id, file);
-      setImageError(false);
-      setIsLoaded(false);
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -106,11 +91,6 @@ export function CertificateModal({
                   <CheckCircle2 size={13} />
                   Verified Credential
                 </span>
-                {certificate.isCustom && (
-                  <span className="px-2 py-0.5 rounded text-[11px] bg-[#39FF14]/15 border border-[#39FF14]/40 text-[#39FF14] fira-code">
-                    تم إرفاق صورة مخصصة
-                  </span>
-                )}
               </div>
               <h3 className="text-xl sm:text-2xl text-white orbitron font-bold tracking-wide truncate">
                 {certificate.title}
@@ -120,28 +100,17 @@ export function CertificateModal({
               </p>
             </div>
 
-            {/* Actions & Close Button */}
-            <div className="flex items-center gap-2">
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
-                className="w-10 h-10 rounded-full glass-strong border border-[#FF073A]/40 text-[#FF073A] hover:bg-[#FF073A]/20 hover:border-[#FF073A] flex items-center justify-center transition-colors shrink-0"
-                title="إغلاق (Esc)"
-              >
-                <X size={20} />
-              </motion.button>
-            </div>
+            {/* Close Button */}
+            <motion.button
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="w-10 h-10 rounded-full glass-strong border border-[#FF073A]/40 text-[#FF073A] hover:bg-[#FF073A]/20 hover:border-[#FF073A] flex items-center justify-center transition-colors shrink-0"
+              title="إغلاق (Esc)"
+            >
+              <X size={20} />
+            </motion.button>
           </div>
-
-          {/* Hidden File Input for Modal */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
 
           {/* Body / Certificate Image Viewer */}
           <div className="relative flex-1 overflow-auto bg-[#070B14] p-4 sm:p-6 flex items-center justify-center min-h-[350px]">
@@ -165,12 +134,12 @@ export function CertificateModal({
                 {!isLoaded && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                     <div className="w-12 h-12 border-2 border-[#00F5FF] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs text-gray-400 fira-code">جاري تحميل صورة الشهادة...</span>
+                    <span className="text-xs text-gray-400 fira-code">جاري التحميل...</span>
                   </div>
                 )}
               </div>
             ) : (
-              /* Fallback view when no image is present yet */
+              /* Fallback view when image is loading or unavailable */
               <div className="text-center p-6 sm:p-8 max-w-lg flex flex-col items-center justify-center">
                 <motion.div
                   className="w-24 h-24 rounded-3xl glass-strong border-2 flex items-center justify-center mb-6"
@@ -187,24 +156,14 @@ export function CertificateModal({
                 <h4 className="text-lg text-white orbitron mb-2 font-bold">
                   {certificate.title}
                 </h4>
-                <p className="text-sm text-gray-400 fira-code mb-5">
+                <p className="text-sm text-gray-400 fira-code mb-4">
                   {certificate.issuer}
                 </p>
 
-                {/* Upload Button Call to Action */}
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-3 rounded-xl glass-strong border border-[#00F5FF] text-[#00F5FF] hover:bg-[#00F5FF]/20 flex items-center gap-2.5 fira-code text-sm font-semibold neon-blue shadow-xl transition-all"
-                >
-                  <Upload size={18} />
-                  <span>إرفاق صورة الشهادة الآن</span>
-                </motion.button>
-
-                <p className="text-xs text-gray-500 fira-code mt-4">
-                  يمكنك رفع صورة من جهازك مباشرة بصيغة PNG أو JPG
-                </p>
+                <div className="px-4 py-2 glass-strong rounded-xl border border-[#00F5FF]/30 text-xs fira-code text-[#00F5FF] flex items-center gap-2">
+                  <FileImage size={15} />
+                  <span>شهادة رسمية موثقة ومعتمدة</span>
+                </div>
               </div>
             )}
           </div>
@@ -216,37 +175,13 @@ export function CertificateModal({
               <span>Official Accreditation Verified</span>
             </div>
 
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Attach / Replace Button */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-3.5 py-1.5 glass-strong rounded-lg border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/20 flex items-center gap-1.5 transition-colors"
-              >
-                <Upload size={14} />
-                <span>{certificate.isCustom || (!imageError && isLoaded) ? 'تغيير الصورة' : 'إرفاق صورة'}</span>
-              </button>
-
-              {/* Remove Custom Attached Image Button */}
-              {certificate.isCustom && onRemoveImage && (
-                <button
-                  onClick={() => {
-                    onRemoveImage(certificate.id);
-                    setImageError(true);
-                  }}
-                  className="px-3 py-1.5 glass-strong rounded-lg border border-[#FF073A]/40 text-[#FF073A] hover:bg-[#FF073A]/20 flex items-center gap-1.5 transition-colors"
-                  title="إزالة الصورة المرفقة واستعادة الافتراضية"
-                >
-                  <Trash2 size={13} />
-                  <span>إزالة الصورة</span>
-                </button>
-              )}
-
+            <div className="flex items-center gap-2.5">
               {!imageError && isLoaded && (
                 <a
                   href={certificate.imageUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 glass-strong rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 flex items-center gap-1.5 transition-colors"
+                  className="px-3.5 py-1.5 glass-strong rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-[#00F5FF] flex items-center gap-1.5 transition-colors"
                 >
                   <span>عرض بملء الشاشة</span>
                   <ExternalLink size={13} />

@@ -1,57 +1,19 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { 
-  ArrowDown, Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Wifi, Database, Binary, HardDrive, Sparkles, Camera, RotateCcw, Upload
+  ArrowDown, Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Wifi, Database, Binary, HardDrive, Sparkles
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { toast } from 'sonner';
 
 export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [customProfileImage, setCustomProfileImage] = useState<string | null>(() => {
+  const [profileImage] = useState<string>(() => {
     try {
-      return localStorage.getItem('custom_profile_image');
+      return localStorage.getItem('custom_profile_image') || '/profile.png';
     } catch {
-      return null;
+      return '/profile.png';
     }
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('يرجى اختيار ملف صورة صالح (PNG, JPG, WebP)');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('حجم الصورة كبير جداً، يرجى اختيار صورة أقل من 5 ميجابايت');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      try {
-        localStorage.setItem('custom_profile_image', dataUrl);
-        setCustomProfileImage(dataUrl);
-        toast.success('تم تحديث صورة البروفايل بنجاح!');
-      } catch {
-        toast.error('تعذر حفظ الصورة، قد تكون مساحة التخزين المحلية ممتلئة');
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleResetProfile = () => {
-    try {
-      localStorage.removeItem('custom_profile_image');
-      setCustomProfileImage(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      toast.info('تمت استعادة صورة البروفايل الأصلية');
-    } catch {
-      // ignore
-    }
-  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -463,7 +425,7 @@ export function Hero() {
 
                 {/* Main Profile Container */}
                 <motion.div
-                  className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center group"
+                  className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center"
                   animate={{
                     boxShadow: [
                       '0 0 50px rgba(0, 245, 255, 0.3)',
@@ -477,9 +439,9 @@ export function Hero() {
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,245,255,0.25)_0%,transparent_70%)] pointer-events-none" />
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15)_0%,transparent_60%)] pointer-events-none" />
 
-                   {/* Profile Image (Custom uploaded or Default) */}
+                   {/* Profile Image */}
                    <img
-                     src={customProfileImage || "/profile.png"}
+                     src={profileImage}
                      alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
                      className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,245,255,0.35)] scale-105 origin-bottom transition-transform duration-300"
                    />
@@ -496,50 +458,7 @@ export function Hero() {
                      animate={{ y: ['-2rem', '24rem'] }}
                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                    />
-
-                   {/* Hover Quick-Upload Overlay */}
-                   <label
-                     htmlFor="hero-profile-input"
-                     className="absolute inset-0 bg-[#0A0F1C]/70 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center cursor-pointer z-30 text-[#00F5FF]"
-                   >
-                     <div className="w-12 h-12 rounded-full glass-strong border border-[#00F5FF]/60 flex items-center justify-center mb-2 neon-blue">
-                       <Camera size={22} />
-                     </div>
-                     <span className="text-xs fira-code font-semibold">تغيير صورة البروفايل</span>
-                     <span className="text-[10px] text-gray-400 fira-code">اضغط لاختيار صورة</span>
-                   </label>
                 </motion.div>
-
-                {/* Profile Picture Upload & Reset Actions */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
-                  <label 
-                    htmlFor="hero-profile-input"
-                    className="flex items-center gap-2 px-4 py-2 glass-strong rounded-full border border-[#00F5FF]/50 hover:border-[#00F5FF] text-[#00F5FF] hover:bg-[#00F5FF]/20 text-xs fira-code cursor-pointer shadow-xl transition-all duration-300 neon-blue"
-                  >
-                    <Upload size={14} />
-                    <span>{customProfileImage ? 'تغيير صورة البروفايل' : 'إرفاق صورة البروفايل'}</span>
-                  </label>
-                  <input
-                    id="hero-profile-input"
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileUpload}
-                    className="hidden"
-                  />
-                  {customProfileImage && (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleResetProfile}
-                      className="px-3 py-2 glass-strong rounded-full border border-[#FF073A]/40 text-[#FF073A] hover:bg-[#FF073A]/20 text-xs fira-code flex items-center gap-1.5 transition-colors shadow-lg"
-                      title="استعادة الصورة الأصلية"
-                    >
-                      <RotateCcw size={13} />
-                      <span>استعادة الأصلية</span>
-                    </motion.button>
-                  )}
-                </div>
 
                 {/* Floating Tech Icons */}
                 {[
