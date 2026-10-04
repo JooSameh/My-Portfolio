@@ -36,7 +36,7 @@ export function Certifications() {
       issuer: "Agricultural Bank of Egypt",
       category: "Banking",
       color: "#00F5FF",
-      defaultUrl: "/certs/cert-2.jpg"
+      defaultUrl: "/cert-2.jpg"
     },
     {
       id: "cert-3",
@@ -44,7 +44,7 @@ export function Certifications() {
       issuer: "Akademia Akhbar Al Youm - Choral Team Performance",
       category: "Arts",
       color: "#FF073A",
-      defaultUrl: "/certs/cert-3.jpg"
+      defaultUrl: "/cert-3.jpg"
     },
     {
       id: "cert-4",
@@ -52,7 +52,7 @@ export function Certifications() {
       issuer: "Nile Media & Nile Today",
       category: "Media",
       color: "#B026FF",
-      defaultUrl: "/certs/cert-4.jpg"
+      defaultUrl: "/cert-4.jpg"
     },
     {
       id: "cert-5",
@@ -60,7 +60,7 @@ export function Certifications() {
       issuer: "Nile Media & Nile Today",
       category: "Media",
       color: "#B026FF",
-      defaultUrl: "/certs/cert-5.jpg"
+      defaultUrl: "/cert-5.jpg"
     },
     {
       id: "cert-6",
@@ -68,7 +68,7 @@ export function Certifications() {
       issuer: "Nile Media & Nile Today",
       category: "Media",
       color: "#B026FF",
-      defaultUrl: "/certs/cert-6.jpg"
+      defaultUrl: "/cert-6.jpg"
     },
     {
       id: "cert-7",
@@ -76,7 +76,7 @@ export function Certifications() {
       issuer: "Nile Media & Nile Today",
       category: "Media",
       color: "#B026FF",
-      defaultUrl: "/certs/cert-7.jpg"
+      defaultUrl: "/cert-7.jpg"
     },
     {
       id: "cert-8",
@@ -84,7 +84,7 @@ export function Certifications() {
       issuer: "Nile Media & Nile Today",
       category: "Media",
       color: "#B026FF",
-      defaultUrl: "/certs/cert-8.jpg"
+      defaultUrl: "/cert-8.jpg"
     },
     {
       id: "cert-9",
@@ -92,7 +92,7 @@ export function Certifications() {
       issuer: "Nile Media & Nile Today",
       category: "Media",
       color: "#B026FF",
-      defaultUrl: "/certs/cert-9.jpg"
+      defaultUrl: "/cert-9.jpg"
     },
     {
       id: "cert-10",
@@ -100,7 +100,7 @@ export function Certifications() {
       issuer: "EG Bank, OBM & Ministry of Youth & Sports",
       category: "Banking",
       color: "#00F5FF",
-      defaultUrl: "/certs/cert-10.jpg"
+      defaultUrl: "/cert-10.jpg"
     },
     {
       id: "cert-11",
@@ -108,7 +108,7 @@ export function Certifications() {
       issuer: "Academy of Scientific Research & Technology (ENSTINET)",
       category: "Technology",
       color: "#39FF14",
-      defaultUrl: "/certs/cert-11.jpg"
+      defaultUrl: "/cert-11.jpg"
     }
   ];
 
