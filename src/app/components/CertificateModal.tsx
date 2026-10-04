@@ -106,7 +106,7 @@ export function CertificateModal({
               whileTap={{ scale: 0.9 }}
               onClick={onClose}
               className="w-10 h-10 rounded-full glass-strong border border-[#FF073A]/40 text-[#FF073A] hover:bg-[#FF073A]/20 hover:border-[#FF073A] flex items-center justify-center transition-colors shrink-0"
-              title="إغلاق (Esc)"
+              title="Close (Esc)"
             >
               <X size={20} />
             </motion.button>
@@ -134,7 +134,7 @@ export function CertificateModal({
                 {!isLoaded && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                     <div className="w-12 h-12 border-2 border-[#00F5FF] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs text-gray-400 fira-code">جاري التحميل...</span>
+                    <span className="text-xs text-gray-400 fira-code">Loading certificate...</span>
                   </div>
                 )}
               </div>
@@ -162,7 +162,7 @@ export function CertificateModal({
 
                 <div className="px-4 py-2 glass-strong rounded-xl border border-[#00F5FF]/30 text-xs fira-code text-[#00F5FF] flex items-center gap-2">
                   <FileImage size={15} />
-                  <span>شهادة رسمية موثقة ومعتمدة</span>
+                  <span>Official Accredited & Verified Credential</span>
                 </div>
               </div>
             )}
@@ -183,7 +183,7 @@ export function CertificateModal({
                   rel="noopener noreferrer"
                   className="px-3.5 py-1.5 glass-strong rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-[#00F5FF] flex items-center gap-1.5 transition-colors"
                 >
-                  <span>عرض بملء الشاشة</span>
+                  <span>View Fullscreen</span>
                   <ExternalLink size={13} />
                 </a>
               )}
@@ -192,7 +192,7 @@ export function CertificateModal({
                 onClick={onClose}
                 className="px-4 py-1.5 glass rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-gray-400 transition-colors"
               >
-                إغلاق
+                Close
               </button>
             </div>
           </div>

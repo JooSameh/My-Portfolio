@@ -7,7 +7,7 @@ export function Projects() {
   const projects = [
     {
       title: "Arabic AI Chatbot & Voice Assistant - Qwen 2.5",
-      description: "Built a custom Arabic language chatbot and voice assistant interface using Python and Gradio, powered by Qwen 2.5 LLM. Engineered a comprehensive Local Voice-Activated Assistant (مساعد صوتي محلي متكامل يحاكي قدرات المساعدات الذكية المتقدمة) with speech recognition and speech synthesis capabilities, optimized for Arabic dialects with intelligent response generation and context awareness.",
+      description: "Built a custom Arabic language chatbot and voice assistant interface using Python and Gradio, powered by Qwen 2.5 LLM. Engineered a comprehensive Local Voice-Activated Assistant simulating the capabilities of advanced intelligent assistants, featuring speech recognition and speech synthesis capabilities, optimized for Arabic dialects with intelligent response generation and context awareness.",
       image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
       tools: ["Python", "Gradio", "Qwen 2.5", "Ollama", "Whisper", "TTS", "Natural Language Processing"],
       outcome: "Successfully deployed AI-powered chatbot with 90% accuracy in Arabic language comprehension. Integrated advanced conversation flow and context retention mechanisms.",

@@ -51,9 +51,9 @@ export function Contact() {
 
       if (!response.ok) {
          if (response.status === 429) {
-            throw new Error('أرسلت طلبات كثيرة. يرجى المحاولة لاحقاً.');
+            throw new Error('Too many requests. Please try again later.');
          }
-         throw new Error('فشل إرسال الرسالة');
+         throw new Error('Failed to send message. Please try again.');
       }
 
       toast.success('Message sent successfully! I\'ll get back to you soon.');

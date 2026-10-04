@@ -221,7 +221,7 @@ export function Certifications() {
                   <div className="absolute inset-0 bg-[#0A0F1C]/75 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20">
                     <div className="px-4 py-2 glass-strong rounded-full border border-[#00F5FF]/60 text-[#00F5FF] text-xs fira-code flex items-center gap-2 neon-blue shadow-lg">
                       <Eye size={14} />
-                      <span>عرض وتكبير</span>
+                      <span>View & Enlarge</span>
                     </div>
                   </div>
                 </div>
@@ -240,12 +240,12 @@ export function Certifications() {
                   <div className="pt-3 border-t border-[#00F5FF]/10 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs text-[#39FF14] fira-code">
                       <ShieldCheck size={14} />
-                      <span>معتمدة وموثقة</span>
+                      <span>Verified & Accredited</span>
                     </div>
 
                     <div className="text-xs text-[#00F5FF] fira-code flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                      <span>تفاصيل</span>
-                      <span>←</span>
+                      <span>Details</span>
+                      <span>→</span>
                     </div>
                   </div>
                 </div>
