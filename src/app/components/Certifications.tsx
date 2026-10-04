@@ -28,7 +28,7 @@ export function Certifications() {
       issuer: "Egyptian Banking System Model (EBSM) & E-Bank",
       category: "Banking",
       color: "#00F5FF",
-      defaultUrl: "/certs/cert-1.jpg"
+      defaultUrl: "/cert-1.jpg"
     },
     {
       id: "cert-2",
