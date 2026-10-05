@@ -37,11 +37,15 @@ export function Contact() {
     setIsSubmitting(true);
 
     try {
-      // 2. Real API Call
-      const response = await fetch('/api/contact', {
+      // 2. Real API Call to Web3Forms
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
+          access_key: "7fd90b3b-ce5a-41ff-b216-84becdb77acd",
           name: formData.name,
           email: formData.email,
           subject: formData.subject,
@@ -49,23 +53,22 @@ export function Contact() {
         })
       });
 
-      if (!response.ok) {
-         if (response.status === 429) {
-            throw new Error('Too many requests. Please try again later.');
-         }
-         throw new Error('Failed to send message. Please try again.');
-      }
+      const result = await response.json();
 
-      toast.success('Message sent successfully! I\'ll get back to you soon.');
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-        botField: ''
-      });
+      if (result.success) {
+        toast.success('Message sent successfully! I\'ll get back to you soon.');
+        
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+          botField: ''
+        });
+      } else {
+         throw new Error(result.message || 'Failed to send message.');
+      }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred while sending the message. Please try again.');
     } finally {
