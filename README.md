@@ -1,4 +1,4 @@
-# 🛡️ Youssef Sameh EL-Gendy — Cybersecurity & AI Portfolio
+#  Youssef Sameh EL-Gendy — Cybersecurity & AI Portfolio
 
 <div align="center">
 
@@ -17,7 +17,7 @@
 
 ---
 
-## ⚡ Overview
+##  Overview
 
 This repository houses the personal portfolio and digital identity of **Youssef Sameh EL-Gendy**, an Egyptian Cybersecurity Specialist, Offensive Security Practitioner, AI Developer, and Public Speaker.
 
@@ -25,30 +25,30 @@ The website delivers an immersive **Cyberpunk / Sci-Fi** aesthetic infused with 
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
-### 1. 🎴 Cyberpunk Hero Experience
+### 1.  Cyberpunk Hero Experience
 - **Interactive Holographic Avatar:** Dynamic neon backlights (`#00F5FF` Cyan & `#39FF14` Matrix Green) with real-time laser sweep scanning line animation.
 - **3D Floating Security Artifacts:** Interactive orbital security glyphs representing Network Defense, Cryptography, Packet Inspection, and Binary Exploitation.
 - **Terminal Typing Effects:** Dynamic cyber-terminal text highlighting competencies in Offensive Security, Threat Intelligence, and AI Solutions.
 - **Zero-Flicker Read-Only Presentation:** Clean portfolio display without intrusive admin controls or public upload buttons.
 
-### 2. 🧠 Offensive Security & AI Projects
+### 2.  Offensive Security & AI Projects
 - **Arabic AI Voice-Activated Assistant (Qwen 2.5):** Custom voice interface and chatbot combining Qwen 2.5 LLM, Whisper ASR, local TTS engines, and Ollama in a localized Python/Gradio framework.
 - **Academic Web Portal Penetration Testing:** Methodical vulnerability assessments detecting SQLi, XSS, and authentication weaknesses with remediation reports.
 - **Ministry Cybersecurity Initiative:** Specialized hands-on curriculum delivering network reconnaissance, defense-in-depth, and ethical hacking training to 45+ students.
 
-### 3. 🛠️ Heavyweight Technical Skills
+### 3.  Heavyweight Technical Skills
 - **Offensive Security:** Nmap, Metasploit Framework, Burp Suite, Scapy (Packet Crafting & Analysis), OWASP Top 10, Network Reconnaissance.
 - **AI & Software Engineering:** Python, Gradio, Qwen 2.5, Whisper, Ollama, React, TypeScript, Tailwind CSS, SQLite, Git.
 - **Systems & Infrastructure:** Linux Hardening (Kali / Ubuntu), Windows Server, Network Routing, File System Migration (NTFS/FAT32).
 - **Communication & Leadership:** Technical team leadership, curriculum design, media broadcasting, and conference organizing.
 
-### 4. 📜 Interactive Certificate Gallery (11 Credentials)
+### 4.  Interactive Certificate Gallery (11 Credentials)
 - **Grid Showcase:** Categorized credentials spanning Banking Systems, Media Diplomas, Arts & Performance, and IT Foundations.
 - **Custom Lightbox Modal:** High-resolution modal with backdrop blur (`backdrop-blur-xl`), animated award seals, full-screen viewing, and triple-tier dismissal (ESC key, outer backdrop click, or direct close button).
 
-### 5. 🔒 Hardened Contact Security Pipeline
+### 5.  Hardened Contact Security Pipeline
 - **Honeypot Bot Defense (`botField`):** Invisible honeypot trap catching automated crawlers and dropping spam payloads silently.
 - **Sliding-Window IP Rate Limiting:** Enforces a maximum threshold of **3 submissions per minute per IP** to eliminate flood and spam attacks.
 - **Strict Payload Restriction (10 KB):** Guards against Denial-of-Service (DoS) and memory exhaustion attempts.
@@ -56,7 +56,7 @@ The website delivers an immersive **Cyberpunk / Sci-Fi** aesthetic infused with 
 
 ---
 
-## 🏗️ Technology Stack
+##  Technology Stack
 
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
@@ -71,7 +71,7 @@ The website delivers an immersive **Cyberpunk / Sci-Fi** aesthetic infused with 
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 ├── api/
@@ -110,7 +110,7 @@ The website delivers an immersive **Cyberpunk / Sci-Fi** aesthetic infused with 
 
 ---
 
-## 🛠️ Getting Started
+##  Getting Started
 
 ### Prerequisites
 - **Node.js** (v18.0.0 or higher recommended)
@@ -141,7 +141,7 @@ The optimized static output will be generated inside the `dist/` folder ready fo
 
 ---
 
-## 🛡️ Security Architecture
+##  Security Architecture
 
 The application adopts a **Defense-in-Depth** model:
 
@@ -162,18 +162,18 @@ graph TD
 
 ---
 
-## 👤 About the Author
+##  About the Author
 
 **Youssef Sameh EL-Gendy**  
 *Cybersecurity Specialist • Ethical Hacker • AI Solutions Developer*
 
-- 🌐 **GitHub:** [@JooSameh](https://github.com/JooSameh)
-- 💼 **LinkedIn:** [youssef-el-gendy](https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/)
-- 📍 **Location:** Cairo, Egypt
+-  **GitHub:** [@JooSameh](https://github.com/JooSameh)
+-  **LinkedIn:** [youssef-el-gendy](https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/)
+-  **Location:** Cairo, Egypt
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the [MIT License](LICENSE) — feel free to explore, learn from, and adapt the techniques used throughout this codebase.
 
