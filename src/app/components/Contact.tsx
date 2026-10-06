@@ -25,40 +25,31 @@ export function Contact() {
     phoneNumber: '106 997 5376'
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // 1. Bot Protection (Honeypot Check)
     if (formData.botField !== '') {
       console.warn('Bot submission detected and blocked.');
-      return; // Silently fail
+      return; 
     }
 
     setIsSubmitting(true);
 
+    // 2. Use FormData instead of JSON to ensure Web3Forms processes the payload correctly
+    const payload = new FormData(e.currentTarget);
+    payload.append("access_key", "7fd90b3b-ce5a-41ff-b216-84becdb77acd");
+
     try {
-      // 2. Real API Call to Web3Forms
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          access_key: "7fd90b3b-ce5a-41ff-b216-84becdb77acd",
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message
-        })
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: payload
       });
 
-      const result = await response.json();
+      const data = await response.json();
 
-      if (result.success) {
+      if (data.success) {
         toast.success('Message sent successfully! I\'ll get back to you soon.');
-        
-        // Reset form
         setFormData({
           name: '',
           email: '',
@@ -67,7 +58,7 @@ export function Contact() {
           botField: ''
         });
       } else {
-         throw new Error(result.message || 'Failed to send message.');
+         throw new Error(data.message || 'Failed to send message.');
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred while sending the message. Please try again.');
