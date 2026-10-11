@@ -118,7 +118,12 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="text-white orbitron">Email</h4>
-                  <a href={`mailto:${contactInfo.emailUser}@${contactInfo.emailDomain}`} className="text-gray-400 hover:text-[#00F5FF] transition-colors fira-code text-sm">
+                  <a 
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-[#00F5FF] transition-colors fira-code text-sm"
+                  >
                     {contactInfo.emailUser}@{contactInfo.emailDomain}
                   </a>
                 </div>

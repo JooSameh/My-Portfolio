@@ -85,7 +85,9 @@ export function Header() {
             {/* Quick Access Icons */}
             <div className="flex items-center space-x-2">
               <motion.a 
-                href="mailto:youssefs.sec@gmail.com" 
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -176,7 +178,9 @@ export function Header() {
             {/* Mobile Social Links */}
             <div className="flex justify-center space-x-4 pb-2">
               <motion.a 
-                href="mailto:youssefs.sec@gmail.com" 
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >

@@ -330,17 +330,19 @@ export function Hero() {
                   <span>Explore Arsenal</span>
                 </div>
               </motion.button>
-              <motion.button
-                className="glass px-8 py-4 rounded-full text-lg border border-[#00F5FF]/50 text-[#00F5FF] hover:bg-[#00F5FF]/10 transition-all duration-300"
+              <motion.a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass px-8 py-4 rounded-full text-lg border border-[#00F5FF]/50 text-[#00F5FF] hover:bg-[#00F5FF]/10 transition-all duration-300 inline-flex items-center justify-center cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => window.open('mailto:youssefs.sec@gmail.com')}
               >
                 <div className="flex items-center gap-3">
                   <Zap size={20} />
                   <span>Initialize Contact</span>
                 </div>
-              </motion.button>
+              </motion.a>
             </motion.div>
 
             {/* Floating Skill Tags */}
