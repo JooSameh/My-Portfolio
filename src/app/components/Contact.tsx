@@ -158,9 +158,10 @@ export function Contact() {
               <h4 className="text-white mb-4 orbitron">Follow Me</h4>
               <div className="flex space-x-4">
                 <motion.a
-                  href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
+                  href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369"
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(0, 245, 255, 0.5)' }}
                   className="w-12 h-12 glass-strong rounded-lg flex items-center justify-center border border-[#00F5FF]/40 transition-all"
                 >

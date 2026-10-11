@@ -93,9 +93,10 @@ export function Header() {
                 <Mail size={16} className="text-[#00F5FF]" />
               </motion.a>
               <motion.a 
-                href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/" 
+                href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369" 
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener"
+                referrerPolicy="strict-origin-when-cross-origin"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -182,9 +183,10 @@ export function Header() {
                 <Mail size={18} className="text-[#00F5FF]" />
               </motion.a>
               <motion.a 
-                href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/" 
+                href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369" 
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener"
+                referrerPolicy="strict-origin-when-cross-origin"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >

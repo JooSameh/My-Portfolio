@@ -24,11 +24,13 @@ export function CertificateModal({
 }: CertificateModalProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isEnlarged, setIsEnlarged] = useState(false);
 
   // Reset image states when certificate changes or its imageUrl updates
   useEffect(() => {
     setImageError(false);
     setIsLoaded(false);
+    setIsEnlarged(false);
   }, [certificate?.imageUrl, certificate?.id]);
 
   // Handle ESC key to close
@@ -118,23 +120,43 @@ export function CertificateModal({
             <div className="absolute inset-0 cyber-grid opacity-10 pointer-events-none" />
 
             {!imageError ? (
-              <div className="relative w-full h-full flex flex-col items-center justify-center">
-                {/* Image Display */}
-                <img
-                  src={certificate.imageUrl}
-                  alt={certificate.title}
-                  onLoad={() => setIsLoaded(true)}
-                  onError={() => setImageError(true)}
-                  className={`max-w-full max-h-[60vh] object-contain rounded-lg border border-[#00F5FF]/20 shadow-2xl transition-opacity duration-300 ${
-                    isLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
+              <div className="relative w-full h-full flex flex-col items-center justify-center select-none">
+                {/* Protected Image Container */}
+                <div className="relative inline-flex items-center justify-center max-w-full select-none overflow-hidden rounded-lg">
+                  {/* Image Display */}
+                  <img
+                    src={certificate.imageUrl}
+                    alt={certificate.title}
+                    draggable={false}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    onLoad={() => setIsLoaded(true)}
+                    onError={() => setImageError(true)}
+                    className={`max-w-full object-contain rounded-lg border border-[#00F5FF]/20 shadow-2xl transition-all duration-300 pointer-events-none select-none ${
+                      isEnlarged ? 'max-h-[78vh] scale-100' : 'max-h-[58vh]'
+                    } ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  />
+
+                  {/* Multi-Platform Transparent Touch & Right-Click Shield */}
+                  <div 
+                    className="absolute inset-0 z-20 bg-transparent select-none cursor-default image-shield"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+
+                  {/* Anti-Theft Watermark Holographic Overlay */}
+                  <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center opacity-15 select-none overflow-hidden">
+                    <div className="rotate-[-22deg] text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] text-[#00F5FF] text-center whitespace-nowrap bg-black/40 px-4 py-1 border border-[#00F5FF]/30 rounded">
+                      CYBERSECURITY VERIFIED CREDENTIAL • NOT FOR DISTRIBUTION • PROTECTED VIEW
+                    </div>
+                  </div>
+                </div>
 
                 {/* Loading skeleton while image loads */}
                 {!isLoaded && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                     <div className="w-12 h-12 border-2 border-[#00F5FF] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs text-gray-400 fira-code">Loading certificate...</span>
+                    <span className="text-xs text-gray-400 fira-code">Loading credential...</span>
                   </div>
                 )}
               </div>
@@ -172,20 +194,19 @@ export function CertificateModal({
           <div className="p-4 bg-[#0A0F1C]/90 border-t border-[#00F5FF]/15 flex flex-wrap items-center justify-between gap-3 text-xs fira-code">
             <div className="flex items-center gap-2 text-[#39FF14]">
               <ShieldCheck size={16} />
-              <span>Official Accreditation Verified</span>
+              <span>Official Accreditation Verified • Protected Asset</span>
             </div>
 
             <div className="flex items-center gap-2.5">
               {!imageError && isLoaded && (
-                <a
-                  href={certificate.imageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-1.5 glass-strong rounded-lg border border-gray-600 text-gray-300 hover:text-white hover:border-[#00F5FF] flex items-center gap-1.5 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setIsEnlarged(!isEnlarged)}
+                  className="px-3.5 py-1.5 glass-strong rounded-lg border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/15 flex items-center gap-1.5 transition-colors cursor-pointer select-none"
                 >
-                  <span>View Fullscreen</span>
-                  <ExternalLink size={13} />
-                </a>
+                  <ShieldCheck size={13} />
+                  <span>{isEnlarged ? 'Standard Size' : 'Enlarge Preview'}</span>
+                </button>
               )}
 
               <button

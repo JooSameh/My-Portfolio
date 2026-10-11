@@ -96,9 +96,10 @@ export function About() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">LinkedIn:</span>
                   <a
-                    href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
+                    href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369"
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener"
+                    referrerPolicy="strict-origin-when-cross-origin"
                     className="text-[#00F5FF] hover:underline hover:text-white transition-colors text-sm fira-code"
                   >
                     youssef-el-gendy
@@ -129,9 +130,10 @@ export function About() {
           className="flex justify-center mb-16"
         >
           <motion.a
-            href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
+            href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener"
+            referrerPolicy="strict-origin-when-cross-origin"
             className="glass-strong px-8 py-4 rounded-full orbitron border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/20 hover:neon-blue transition-all duration-300 flex items-center gap-3"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

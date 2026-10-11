@@ -162,39 +162,32 @@ export function Hero() {
 
       {/* Floating Contact Card */}
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2 }}
-        className="absolute top-8 right-8 glass rounded-xl p-4 z-20 hidden lg:block"
+        transition={{ delay: 1 }}
+        className="absolute top-24 lg:top-28 right-8 glass rounded-xl p-4 z-20 hidden lg:block"
       >
         <div className="text-center space-y-3">
           <div className="text-xs text-[#00F5FF] uppercase tracking-wide orbitron">Contact</div>
           <div className="flex gap-3 justify-center">
-            <motion.a
-              href="mailto:youssefs.sec@gmail.com"
+            <motion.div
               whileHover={{ scale: 1.1 }}
-              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue"
+              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue cursor-default select-none"
             >
               <Terminal size={16} className="text-[#00F5FF]" />
-            </motion.a>
-            <motion.a
-              href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369/"
-              target="_blank"
-              rel="noopener noreferrer"
+            </motion.div>
+            <motion.div
               whileHover={{ scale: 1.1 }}
-              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue"
+              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue cursor-default select-none"
             >
               <Wifi size={16} className="text-[#00F5FF]" />
-            </motion.a>
-            <motion.a
-              href="https://github.com/JooSameh"
-              target="_blank"
-              rel="noopener noreferrer"
+            </motion.div>
+            <motion.div
               whileHover={{ scale: 1.1 }}
-              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue"
+              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue cursor-default select-none"
             >
               <Code size={16} className="text-[#00F5FF]" />
-            </motion.a>
+            </motion.div>
           </div>
         </div>
       </motion.div>
@@ -439,11 +432,21 @@ export function Hero() {
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,245,255,0.25)_0%,transparent_70%)] pointer-events-none" />
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15)_0%,transparent_60%)] pointer-events-none" />
 
-                   {/* Profile Image */}
+                   {/* Profile Image with Touch & Right-Click Shield */}
                    <img
                      src={profileImage}
                      alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
-                     className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,245,255,0.35)] scale-105 origin-bottom transition-transform duration-300"
+                     draggable={false}
+                     onContextMenu={(e) => e.preventDefault()}
+                     onDragStart={(e) => e.preventDefault()}
+                     className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,245,255,0.35)] scale-105 origin-bottom transition-transform duration-300 pointer-events-none select-none"
+                   />
+
+                   {/* Transparent Touch & Click Protection Shield */}
+                   <div 
+                     className="absolute inset-0 z-25 bg-transparent select-none image-shield" 
+                     onContextMenu={(e) => e.preventDefault()}
+                     onDragStart={(e) => e.preventDefault()}
                    />
 
                    {/* Smooth Bottom Gradient Blend */}

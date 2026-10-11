@@ -22,8 +22,49 @@ export default function App() {
       setShowScrollTop(window.scrollY > 500);
     };
 
+    // 1. Prevent Right-Click on any image or protected element
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.tagName === 'IMG' ||
+        target?.closest('img') ||
+        target?.classList.contains('image-shield') ||
+        target?.closest('.image-shield') ||
+        target?.closest('.protected-media')
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    // 2. Prevent dragging images to desktop / folders across Mac / Windows
+    const handleDragStart = (e: DragEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.tagName === 'IMG' || target?.closest('img')) {
+        e.preventDefault();
+      }
+    };
+
+    // 3. Block Save Webpage (Ctrl/Cmd+S) and Print (Ctrl/Cmd+P) to protect assets
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('dragstart', handleDragStart);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('dragstart', handleDragStart);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const scrollToTop = () => {

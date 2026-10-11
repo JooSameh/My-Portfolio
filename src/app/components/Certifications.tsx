@@ -169,12 +169,21 @@ export function Certifications() {
                   <div className="absolute inset-0 cyber-grid opacity-15" />
                   
                   {hasCustomImage ? (
-                    /* Display Attached Image Thumbnail */
-                    <div className="relative w-full h-full p-2 flex items-center justify-center">
+                    /* Display Attached Image Thumbnail with Protection Shield */
+                    <div className="relative w-full h-full p-2 flex items-center justify-center select-none overflow-hidden">
                       <img
                         src={displayImageUrl}
                         alt={cert.title}
-                        className="max-h-full max-w-full object-contain rounded-lg border border-[#00F5FF]/30 shadow-lg group-hover:scale-105 transition-transform duration-300"
+                        draggable={false}
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
+                        className="max-h-full max-w-full object-contain rounded-lg border border-[#00F5FF]/30 shadow-lg group-hover:scale-105 transition-transform duration-300 pointer-events-none select-none"
+                      />
+                      {/* Transparent Shield Overlay to prevent image long-press / download */}
+                      <div 
+                        className="absolute inset-0 z-10 bg-transparent select-none image-shield" 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
                       />
                     </div>
                   ) : (

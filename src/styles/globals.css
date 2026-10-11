@@ -335,3 +335,36 @@ html {
   font-size: var(--font-size);
   scroll-behavior: smooth;
 }
+
+/* Multi-Platform Image Protection Rules (iOS, Android, Windows, Mac) */
+img, 
+.protected-media,
+.protected-image {
+  -webkit-touch-callout: none !important; /* Prevents iOS Safari image save/share menu */
+  -webkit-user-select: none !important;  /* Safari/Chrome text & image selection */
+  -moz-user-select: none !important;     /* Firefox */
+  -ms-user-select: none !important;      /* IE/Edge */
+  user-select: none !important;
+  -webkit-user-drag: none !important;    /* Prevents dragging image to desktop or folder */
+  user-drag: none !important;
+}
+
+/* Print Protection: hides images completely if trying to print or Save as PDF */
+@media print {
+  img, 
+  .protected-image, 
+  .protected-media,
+  .certificate-shield {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  body::before {
+    content: "PROTECTED CREDENTIAL - UNAUTHORIZED REPRODUCTION PROHIBITED";
+    display: block;
+    font-size: 18pt;
+    color: #ff073a;
+    text-align: center;
+    margin-top: 50px;
+    font-family: monospace;
+  }
+}

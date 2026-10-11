@@ -38,6 +38,23 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
       </div>
     </div>
   ) : (
-    <img src={imgSrc} alt={alt} className={className} style={style} {...rest} onError={handleError} />
+    <div className="relative inline-block select-none overflow-hidden">
+      <img
+        src={imgSrc}
+        alt={alt}
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+        className={`${className ?? ''} pointer-events-none select-none`}
+        style={style}
+        {...rest}
+        onError={handleError}
+      />
+      <div 
+        className="absolute inset-0 z-10 bg-transparent select-none image-shield"
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+      />
+    </div>
   )
 }
