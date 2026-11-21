@@ -35,12 +35,15 @@ export default function App() {
       }
     };
 
-    // 2. Prevent copying text or assets
+    const POLICY_MESSAGE = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
+
+    // 2. Prevent copying text or assets and overwrite clipboard with policy message
     const handleCopy = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
       if (!isInput) {
         e.preventDefault();
+        e.clipboardData?.setData('text/plain', POLICY_MESSAGE);
       }
     };
 
@@ -50,6 +53,7 @@ export default function App() {
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
       if (!isInput) {
         e.preventDefault();
+        e.clipboardData?.setData('text/plain', POLICY_MESSAGE);
       }
     };
 
@@ -92,9 +96,8 @@ export default function App() {
       if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
         try {
-          navigator.clipboard?.writeText(
-            'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.'
-          ).catch(() => {});
+          document.execCommand('copy');
+          navigator.clipboard?.writeText(POLICY_MESSAGE).catch(() => {});
         } catch {}
       }
     };
@@ -103,9 +106,8 @@ export default function App() {
       if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
         try {
-          navigator.clipboard?.writeText(
-            'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.'
-          ).catch(() => {});
+          document.execCommand('copy');
+          navigator.clipboard?.writeText(POLICY_MESSAGE).catch(() => {});
         } catch {}
       }
     };

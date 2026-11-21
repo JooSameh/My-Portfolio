@@ -14,11 +14,13 @@ export function ScreenShieldOverlay() {
   const lockTimestampRef = useRef<number>(0);
 
   const overwriteClipboard = useCallback(() => {
+    const policyText = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
+    try {
+      document.execCommand('copy');
+    } catch {}
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(
-          'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.'
-        ).catch(() => {});
+        navigator.clipboard.writeText(policyText).catch(() => {});
       }
     } catch {}
   }, []);
