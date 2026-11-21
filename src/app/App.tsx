@@ -9,7 +9,6 @@ import { Skills } from './components/Skills';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
-import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { Toaster } from './components/ui/sonner';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,6 +18,9 @@ export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
+    // Ensure any lingering lock class is cleared
+    document.documentElement.classList.remove('cyber-shield-locked');
+
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 500);
     };
@@ -64,7 +66,7 @@ export default function App() {
       e.preventDefault();
     };
 
-    // 6. Block copy shortcuts, source inspection, and save/print attempts
+    // 6. Block copy shortcuts, source inspection, and save/print attempts silently
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -84,15 +86,33 @@ export default function App() {
       if (e.key === 'F12' || (isCtrlOrMeta && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'c' || e.key === 'C' || e.key === 'j' || e.key === 'J'))) {
         e.preventDefault();
       }
+
+      // Silent PrintScreen clipboard protection (no popup screen)
+      if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+        e.preventDefault();
+        try {
+          navigator.clipboard?.writeText('').catch(() => {});
+        } catch {}
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+        e.preventDefault();
+        try {
+          navigator.clipboard?.writeText('').catch(() => {});
+        } catch {}
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('copy', handleCopy);
     document.addEventListener('cut', handleCut);
     document.addEventListener('selectstart', handleSelectStart);
     document.addEventListener('dragstart', handleDragStart);
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -102,6 +122,7 @@ export default function App() {
       document.removeEventListener('selectstart', handleSelectStart);
       document.removeEventListener('dragstart', handleDragStart);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
@@ -112,7 +133,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
       <Preloader />
-      <ScreenShieldOverlay />
       <Header />
       <main>
         <Hero />
