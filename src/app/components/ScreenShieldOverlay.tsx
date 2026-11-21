@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldAlert, EyeOff, Terminal, CheckCircle2 } from 'lucide-react';
 
-type TriggerReason = 'focus_lost' | 'shortcut' | 'cursor_exit';
+type TriggerReason = 'focus_lost' | 'shortcut' | 'cursor_exit' | 'recording_blocked';
 
 export function ScreenShieldOverlay() {
   const [isShieldActive, setIsShieldActive] = useState(false);
@@ -12,14 +12,12 @@ export function ScreenShieldOverlay() {
   const isLockedRef = useRef(false);
   const lockReasonRef = useRef<TriggerReason>('focus_lost');
   const lockTimestampRef = useRef<number>(0);
-  const isCursorInsideRef = useRef<boolean>(true);
-  const reEntryPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const overwriteClipboard = useCallback(() => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(
-          'SECURITY POLICY: Screen capture is protected on Youssef Sameh Portfolio.'
+          'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.'
         ).catch(() => {});
       }
     } catch {}
@@ -27,23 +25,38 @@ export function ScreenShieldOverlay() {
 
   const restoreDisplay = useCallback(() => {
     isLockedRef.current = false;
-    reEntryPosRef.current = null;
     document.documentElement.classList.remove('cyber-shield-locked');
     setIsShieldActive(false);
   }, []);
 
   const engageShield = useCallback((reason: TriggerReason) => {
-    // 0ms synchronous DOM blackout BEFORE Snipping Tool "New" or Win+G can grab the framebuffer
+    // 0ms synchronous DOM blackout BEFORE Snipping Tool "New", Win+G, or Video Recorders can grab the framebuffer
     document.documentElement.classList.add('cyber-shield-locked');
     isLockedRef.current = true;
     lockReasonRef.current = reason;
     lockTimestampRef.current = performance.now();
-    reEntryPosRef.current = null;
     setTriggerReason(reason);
     setIsShieldActive(true);
   }, []);
 
   useEffect(() => {
+    // 0. Block Browser / WebRTC / Extension Video Recording APIs (getDisplayMedia & captureStream)
+    try {
+      if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
+        navigator.mediaDevices.getDisplayMedia = async () => {
+          engageShield('recording_blocked');
+          overwriteClipboard();
+          throw new DOMException('Screen recording is disabled by security policy.', 'NotAllowedError');
+        };
+      }
+      if (typeof HTMLCanvasElement !== 'undefined' && 'captureStream' in HTMLCanvasElement.prototype) {
+        HTMLCanvasElement.prototype.captureStream = () => {
+          engageShield('recording_blocked');
+          throw new DOMException('Canvas stream capture is disabled by security policy.', 'NotAllowedError');
+        };
+      }
+    } catch {}
+
     // 1. Window blur (switching to Snipping Tool window, OBS, external recorder, Alt+Tab)
     const handleBlur = () => {
       engageShield('focus_lost');
@@ -53,19 +66,12 @@ export function ScreenShieldOverlay() {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         engageShield('focus_lost');
-      } else if (document.hasFocus() && lockReasonRef.current !== 'shortcut') {
-        restoreDisplay();
       }
     };
 
-    // 3. Desktop Pointer Exit Tripwire (CRITICAL for Snipping Tool "New" button):
-    // When Snipping Tool is floating on screen and the user moves the mouse cursor off the webpage
-    // onto the Snipping Tool window to click "New", Windows freezes the screen on "New" mousedown
-    // BEFORE firing window.blur!
-    // By locking at 0ms on desktop mouseleave (before the cursor even reaches the "New" button),
-    // clicking "New" in Snipping Tool only captures the black shield!
+    // 3. Desktop Pointer Exit Tripwire (CRITICAL for Snipping Tool "New" & Video Record button):
+    // Locks at 0ms as soon as the desktop cursor exits the webpage to click Snipping Tool or a recorder bar.
     const handleMouseLeave = (e: MouseEvent) => {
-      // Only apply cursor-exit tripwire on desktop devices with a fine pointer (never on mobile touch)
       if (!window.matchMedia('(pointer: fine)').matches) return;
 
       if (
@@ -75,60 +81,31 @@ export function ScreenShieldOverlay() {
         e.clientX >= window.innerWidth ||
         e.clientY >= window.innerHeight
       ) {
-        isCursorInsideRef.current = false;
         engageShield('cursor_exit');
       }
     };
 
-    const handleMouseEnter = (e: MouseEvent) => {
-      isCursorInsideRef.current = true;
-      reEntryPosRef.current = { x: e.clientX, y: e.clientY };
-    };
-
-    // 4. Smart Auto-Restore on genuine user return inside the webpage:
-    // - NOTE: No 1-second timer is used! Waiting in Win+G or Snipping Tool will NEVER unlock the screen.
-    // - If locked by shortcut (Win+G / Win+Shift+S / PrintScreen), require a real scroll (wheel/touchmove)
-    //   or click (pointerdown) inside the page after closing Win+G so the shield never vanishes while Win+G is open.
-    // - If locked by cursor_exit or focus_lost (Snipping Tool), moving the mouse cursor back inside the
-    //   focused webpage (over 35px distance) or scrolling/clicking automatically restores the display!
-    const handleMouseMove = (e: MouseEvent) => {
-      isCursorInsideRef.current = true;
-      if (!isLockedRef.current) return;
-
-      // Must be focused and visible
-      if (document.hidden || !document.hasFocus()) return;
-
-      // If locked by keyboard shortcut (e.g., Win+G), do NOT unlock on minor mouse movement;
-      // require scroll or click so Win+G overlay can never accidentally unmask the page.
-      if (lockReasonRef.current === 'shortcut') return;
-
-      // Require at least 300ms since lock and 35px of intentional cursor travel inside the focused page
-      if (performance.now() - lockTimestampRef.current < 300) return;
-
-      if (!reEntryPosRef.current) {
-        reEntryPosRef.current = { x: e.clientX, y: e.clientY };
-        return;
-      }
-
-      const dx = e.clientX - reEntryPosRef.current.x;
-      const dy = e.clientY - reEntryPosRef.current.y;
-      const distance = Math.hypot(dx, dy);
-
-      if (distance > 35) {
-        restoreDisplay();
-      }
-    };
-
+    // 4. Smart Auto-Restore ONLY on active Scroll or Click inside the focused webpage:
+    // Why we do NOT unlock on mousemove:
+    // When recording video with Snipping Tool or Game Bar, the user moves their mouse across the webpage
+    // to draw the recording area or during the 3-second countdown. By ignoring passive mousemove and
+    // requiring the page to be focused + an active scroll (wheel/touchmove) or click inside the page,
+    // dragging a video recording box across the page keeps the screen 100% locked!
     const handleScrollOrClickRestore = () => {
       if (!isLockedRef.current) return;
       if (document.hidden || !document.hasFocus()) return;
-      // Ignore accidental events in the first 350ms of shortcut press
-      if (performance.now() - lockTimestampRef.current < 350) return;
+      // Enforce a 600ms guard after lock so rapid shortcut/overlay transitions never auto-unlock
+      if (performance.now() - lockTimestampRef.current < 600) return;
       restoreDisplay();
     };
 
-    // 5. Pre-emptive 0ms Capture Shortcut Interception (Win+G, Win+Shift+S, PrintScreen, Alt+PrtScn)
-    // NO auto-restore timer is attached, so the shield stays locked indefinitely while Win+G is open!
+    // 5. Pre-emptive 0ms Capture & Video Recording Shortcut Interception
+    // Covers:
+    // - PrintScreen / Alt+PrtScn
+    // - Win+G (Xbox Game Bar), Win+Alt+R (Game Bar Direct Video Record), Win+Shift+S (Snipping Tool)
+    // - Alt+F9 / Alt+F10 (Nvidia ShadowPlay Video Record), Alt+R (AMD Radeon ReLive)
+    // - F9 / F10 / F11 / F12 (OBS / Bandicam / Fraps / ShareX default video recording hotkeys)
+    // - Ctrl+Shift+R / Ctrl+Shift+E (Screen recorder hotkeys)
     const isCaptureKey = (e: KeyboardEvent) => {
       const key = e.key || '';
       const code = e.code || '';
@@ -143,7 +120,7 @@ export function ScreenShieldOverlay() {
         return true;
       }
 
-      // Pre-emptive Windows / Command key (catches Win+G, Win+Shift+S, Win+Alt+R, Win+PrtScn, Cmd+Shift+3/4/5)
+      // Pre-emptive Windows / Command key (catches Win+G, Win+Alt+R, Win+Shift+S, Win+PrtScn, Cmd+Shift+3/4/5)
       if (
         key === 'Meta' ||
         key === 'OS' ||
@@ -156,8 +133,18 @@ export function ScreenShieldOverlay() {
         return true;
       }
 
-      // Pre-emptive Alt key (catches Alt+PrtScn, Win+Alt+R Game Bar record, Alt+Tab)
+      // Pre-emptive Alt key (catches Win+Alt+R video record, Alt+F9 ShadowPlay, Alt+PrtScn, Alt+Tab)
       if (key === 'Alt' || code === 'AltLeft' || code === 'AltRight' || e.altKey) {
+        return true;
+      }
+
+      // Dedicated video recording function keys (F9, F10, F11, F12)
+      if (['F9', 'F10', 'F11', 'F12'].includes(key)) {
+        return true;
+      }
+
+      // Ctrl + Shift combinations (Ctrl+Shift+R, Ctrl+Shift+E, Ctrl+Shift+S, etc.)
+      if (e.ctrlKey && e.shiftKey) {
         return true;
       }
 
@@ -180,7 +167,7 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 6. High-frequency focus transition watchdog (100ms)
+    // 6. High-frequency focus transition watchdog (80ms)
     let wasFocused = document.hasFocus();
     const focusWatchdog = window.setInterval(() => {
       const currentlyFocused = document.hasFocus();
@@ -188,13 +175,11 @@ export function ScreenShieldOverlay() {
         engageShield('focus_lost');
       }
       wasFocused = currentlyFocused;
-    }, 100);
+    }, 80);
 
     window.addEventListener('blur', handleBlur, true);
     document.addEventListener('visibilitychange', handleVisibilityChange, true);
     document.documentElement.addEventListener('mouseleave', handleMouseLeave, true);
-    document.documentElement.addEventListener('mouseenter', handleMouseEnter, true);
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('wheel', handleScrollOrClickRestore, { passive: true });
     window.addEventListener('pointerdown', handleScrollOrClickRestore, { passive: true });
     window.addEventListener('touchmove', handleScrollOrClickRestore, { passive: true });
@@ -207,8 +192,6 @@ export function ScreenShieldOverlay() {
       window.removeEventListener('blur', handleBlur, true);
       document.removeEventListener('visibilitychange', handleVisibilityChange, true);
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave, true);
-      document.documentElement.removeEventListener('mouseenter', handleMouseEnter, true);
-      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('wheel', handleScrollOrClickRestore);
       window.removeEventListener('pointerdown', handleScrollOrClickRestore);
       window.removeEventListener('touchmove', handleScrollOrClickRestore);
@@ -250,30 +233,32 @@ export function ScreenShieldOverlay() {
             </h3>
 
             <p className="text-gray-300 text-sm leading-relaxed mb-6 fira-code">
-              {triggerReason === 'shortcut'
-                ? 'Capture shortcut intercepted (Win+G / Win+Shift+S / PrintScreen). Scroll or click anywhere on the page once you return.'
+              {triggerReason === 'recording_blocked'
+                ? 'Screen recording stream intercepted and blocked by security policy.'
+                : triggerReason === 'shortcut'
+                ? 'Capture or recording shortcut intercepted (Win+G / Win+Alt+R / Snipping / PrintScreen). Scroll or click on the page once you return.'
                 : triggerReason === 'cursor_exit'
-                ? 'Cursor exited webpage boundary (Snipping Tool / External App protection). Move cursor back inside the page to auto-restore.'
-                : 'External capture tool or window active. Return to the webpage to automatically restore display.'}
+                ? 'Cursor exited webpage boundary (Snipping Tool / Screen Recorder protection). Scroll or click inside the page to resume.'
+                : 'External capture or recording tool active. Scroll or click inside the webpage to restore display.'}
             </p>
 
             {/* Terminal status box */}
             <div className="bg-[#03050a] p-3 rounded-lg border border-white/10 text-xs text-left fira-code text-gray-400 mb-4 space-y-1">
               <div className="flex items-center gap-1.5 text-[#00F5FF]">
                 <Terminal size={13} />
-                <span>SMART CYBER SHIELD v4.0 (ANTI-SNIP & ANTI-GAMEBAR)</span>
+                <span>SMART CYBER SHIELD v4.5 (YOUSSEF EL-GENDY)</span>
               </div>
               <div className="text-gray-500">
                 &gt; CAPTURE_INTERCEPT: <span className="text-[#39FF14]">LOCKED ({triggerReason.toUpperCase()})</span>
               </div>
               <div className="text-gray-500">
-                &gt; RESTORE_MODE: <span className="text-[#00F5FF]">AUTO ON SCROLL / CLICK / CURSOR RETURN</span>
+                &gt; RESTORE_MODE: <span className="text-[#00F5FF]">AUTO ON SCROLL OR CLICK</span>
               </div>
             </div>
 
             <div className="inline-flex items-center gap-2 text-xs text-[#39FF14] fira-code">
               <CheckCircle2 size={14} />
-              <span>Scroll, click, or move cursor inside page to resume</span>
+              <span>Scroll or click anywhere inside the page to resume</span>
             </div>
           </div>
         </motion.div>

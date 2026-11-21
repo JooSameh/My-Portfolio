@@ -88,11 +88,13 @@ export default function App() {
         e.preventDefault();
       }
 
-      // Silent PrintScreen clipboard protection (no popup screen)
+      // PrintScreen clipboard protection
       if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
         try {
-          navigator.clipboard?.writeText('').catch(() => {});
+          navigator.clipboard?.writeText(
+            'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.'
+          ).catch(() => {});
         } catch {}
       }
     };
@@ -101,7 +103,9 @@ export default function App() {
       if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
         e.preventDefault();
         try {
-          navigator.clipboard?.writeText('').catch(() => {});
+          navigator.clipboard?.writeText(
+            'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.'
+          ).catch(() => {});
         } catch {}
       }
     };
