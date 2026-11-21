@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldAlert, EyeOff, Terminal, RefreshCw } from 'lucide-react';
 
-type TriggerReason = 'focus_lost' | 'shortcut' | 'cursor_exit';
+type TriggerReason = 'focus_lost' | 'shortcut' | 'cursor_exit' | 'mobile_gesture';
 
 export function ScreenShieldOverlay() {
   const [isShieldActive, setIsShieldActive] = useState(false);
@@ -20,7 +20,7 @@ export function ScreenShieldOverlay() {
 
   const engageShield = useCallback((reason: TriggerReason) => {
     // 0ms synchronous DOM class injection — blacks out main/header/footer BEFORE React re-renders
-    // or Windows DWM (Win+G, Win+Shift+S, PrintScreen, Snipping Tool) can grab the framebuffer
+    // or OS capture tools (Win+G, Snipping Tool, 3-Finger Swipe, Palm Swipe, Control Center) grab the frame
     document.documentElement.classList.add('cyber-shield-locked');
     setTriggerReason(reason);
     setIsShieldActive(true);
@@ -32,19 +32,23 @@ export function ScreenShieldOverlay() {
   }, []);
 
   useEffect(() => {
-    // 1. Loss of window focus (Snipping Tool window, Xbox Game Bar Win+G overlay, Alt+Tab, OBS)
+    // 1. Loss of window focus (Snipping Tool, Xbox Game Bar Win+G, Mobile Notification Shade / Control Center / App Switcher)
     const handleBlur = () => {
       engageShield('focus_lost');
     };
 
-    // 2. Tab visibility change
+    // 2. Tab visibility & mobile lifecycle state changes (App Switcher, Home button, Screen Lock, Split-screen)
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden || document.visibilityState !== 'visible') {
         engageShield('focus_lost');
       }
     };
 
-    // 3. Cursor leaving browser viewport (pre-emptively locks screen when moving cursor to click Snipping Tool "New" or taskbar)
+    const handlePageHideOrFreeze = () => {
+      engageShield('focus_lost');
+    };
+
+    // 3. Cursor leaving desktop browser viewport (pre-emptively locks screen when moving cursor to click Snipping Tool)
     const handleMouseLeave = (e: MouseEvent) => {
       if (
         e.clientY <= 0 ||
@@ -57,21 +61,113 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 4. Pre-emptive 0ms keydown & keyup interception
-    // Important: Windows intercepts Win+G and Win+Shift+S at the OS kernel level when 'G' or 'S' is pressed,
-    // and only sends 'PrintScreen' to the browser on KEYUP.
-    // By locking the screen the instant 'Meta' (Win/Cmd) or 'Alt' or 'PrintScreen' is touched on keydown/keyup,
-    // the DOM is blacked out milliseconds BEFORE the user finishes pressing '+ G' or '+ Shift + S'.
+    // 4. Mobile Screenshot Gesture & OS Interrupt Interception (Android & iOS)
+    // - Catches 2-finger & 3-finger screenshot swipes (Xiaomi, Realme, Oppo, Vivo, OnePlus, Motorola) at 0ms on touchstart
+    // - Catches Samsung Palm Swipe to Capture (large capacitive touch radiusX / radiusY or high force/3D touch)
+    // - Catches OS touch stream cancellation (touchcancel / pointercancel) fired when iOS/Android intercepts
+    //   touches for Control Center, Notification Center, AssistiveTouch, or Smart Select screenshot overlays
+    let longPressTimer: number | null = null;
+    let touchStartPos: { x: number; y: number } | null = null;
+
+    const clearLongPressTimer = () => {
+      if (longPressTimer !== null) {
+        window.clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // Multi-finger touch (2 or 3+ fingers used for 3-finger screenshot swipe or 2-finger capture gestures)
+      if (e.touches.length >= 2) {
+        clearLongPressTimer();
+        engageShield('mobile_gesture');
+        overwriteClipboard();
+        return;
+      }
+
+      // Check for Palm Swipe (Samsung Galaxy wide palm capacitive contact) or 3D/Haptic Force Touch
+      const touch = e.touches[0];
+      if (touch) {
+        const radiusX = (touch as Touch & { radiusX?: number }).radiusX || 0;
+        const radiusY = (touch as Touch & { radiusY?: number }).radiusY || 0;
+        const force = (touch as Touch & { force?: number }).force || 0;
+
+        // Palm swipe covers a wide contact area on the digitizer (> 42px radius)
+        if (radiusX > 42 || radiusY > 42 || (force > 0.9 && radiusX > 28)) {
+          clearLongPressTimer();
+          engageShield('mobile_gesture');
+          overwriteClipboard();
+          return;
+        }
+
+        // Stationary long-press trap (blocks mobile long-press image/page capture menus unless inside an input)
+        const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (targetTag !== 'input' && targetTag !== 'textarea' && targetTag !== 'button' && targetTag !== 'a') {
+          touchStartPos = { x: touch.clientX, y: touch.clientY };
+          clearLongPressTimer();
+          longPressTimer = window.setTimeout(() => {
+            engageShield('mobile_gesture');
+          }, 550);
+        }
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        clearLongPressTimer();
+        engageShield('mobile_gesture');
+        overwriteClipboard();
+        return;
+      }
+
+      const touch = e.touches[0];
+      if (touch) {
+        const radiusX = (touch as Touch & { radiusX?: number }).radiusX || 0;
+        const radiusY = (touch as Touch & { radiusY?: number }).radiusY || 0;
+        if (radiusX > 45 || radiusY > 45) {
+          clearLongPressTimer();
+          engageShield('mobile_gesture');
+          return;
+        }
+
+        // Cancel stationary long-press timer if the user is just normally scrolling with 1 finger
+        if (touchStartPos) {
+          const dx = Math.abs(touch.clientX - touchStartPos.x);
+          const dy = Math.abs(touch.clientY - touchStartPos.y);
+          if (dx > 12 || dy > 12) {
+            clearLongPressTimer();
+          }
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      clearLongPressTimer();
+      touchStartPos = null;
+    };
+
+    // Critical for Mobile: When the OS steals a gesture (3-finger screenshot, pulling down Control Center / Notification bar,
+    // Samsung Edge Panel, or iOS AssistiveTouch), the browser immediately fires `touchcancel` / `pointercancel`.
+    const handleTouchOrPointerCancel = () => {
+      clearLongPressTimer();
+      engageShield('mobile_gesture');
+      overwriteClipboard();
+    };
+
+    // 5. Pre-emptive 0ms Desktop & Mobile Hardware Key Interception
     const isCaptureKey = (e: KeyboardEvent) => {
       const key = e.key || '';
       const code = e.code || '';
 
-      // Direct PrintScreen (Windows often fires this on keyup with keyCode 44)
+      // Direct PrintScreen / Volume+Power key events if exposed by WebView
       if (
         key === 'PrintScreen' ||
         code === 'PrintScreen' ||
         e.keyCode === 44 ||
-        e.which === 44
+        e.which === 44 ||
+        key === 'VolumeDown' ||
+        key === 'VolumeUp' ||
+        key === 'Power'
       ) {
         return true;
       }
@@ -99,7 +195,7 @@ export function ScreenShieldOverlay() {
         return true;
       }
 
-      // Function keys commonly mapped to third-party screen capture tools (ShareX, Lightshot, Greenshot, Fraps)
+      // Function keys commonly mapped to third-party screen capture tools
       if (['F9', 'F10', 'F11', 'F12'].includes(key)) {
         return true;
       }
@@ -125,7 +221,7 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 5. High-frequency focus transition watchdog (catches OS overlays & focus steals after document was focused)
+    // 6. High-frequency focus transition watchdog
     let wasFocused = document.hasFocus();
     const focusWatchdog = window.setInterval(() => {
       const currentlyFocused = document.hasFocus();
@@ -135,27 +231,47 @@ export function ScreenShieldOverlay() {
         engageShield('focus_lost');
       }
       wasFocused = currentlyFocused;
-    }, 120);
+    }, 100);
 
     window.addEventListener('blur', handleBlur, true);
     document.addEventListener('visibilitychange', handleVisibilityChange, true);
+    window.addEventListener('pagehide', handlePageHideOrFreeze, true);
+    document.addEventListener('freeze', handlePageHideOrFreeze, true);
     document.documentElement.addEventListener('mouseleave', handleMouseLeave, true);
     window.addEventListener('keydown', handleKeyDown, true);
     window.addEventListener('keyup', handleKeyUp, true);
 
+    // Mobile touch & gesture capture-phase listeners
+    window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
+    window.addEventListener('touchcancel', handleTouchOrPointerCancel, { capture: true, passive: true });
+    window.addEventListener('pointercancel', handleTouchOrPointerCancel, { capture: true, passive: true });
+
     return () => {
+      clearLongPressTimer();
       window.clearInterval(focusWatchdog);
       window.removeEventListener('blur', handleBlur, true);
       document.removeEventListener('visibilitychange', handleVisibilityChange, true);
+      window.removeEventListener('pagehide', handlePageHideOrFreeze, true);
+      document.removeEventListener('freeze', handlePageHideOrFreeze, true);
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave, true);
       window.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('keyup', handleKeyUp, true);
+
+      window.removeEventListener('touchstart', handleTouchStart, true);
+      window.removeEventListener('touchmove', handleTouchMove, true);
+      window.removeEventListener('touchend', handleTouchEnd, true);
+      window.removeEventListener('touchcancel', handleTouchOrPointerCancel, true);
+      window.removeEventListener('pointercancel', handleTouchOrPointerCancel, true);
     };
   }, [engageShield, overwriteClipboard]);
 
   const reasonMessage =
     triggerReason === 'shortcut'
       ? 'System shortcut or capture key detected (Win / Game Bar / Snipping / PrintScreen). Display immediately blacked out.'
+      : triggerReason === 'mobile_gesture'
+      ? 'Mobile capture gesture or OS touch interrupt detected (Multi-Finger Swipe / Palm Swipe / Control Center). Display locked.'
       : triggerReason === 'cursor_exit'
       ? 'Pointer exited active viewport boundary. Display locked to prevent external Snipping Tool or recording capture.'
       : 'Window focus departed or external overlay detected. Display obscured to prevent screen recording and capture.';
@@ -217,13 +333,13 @@ export function ScreenShieldOverlay() {
             <div className="bg-[#03050a] p-3 rounded-lg border border-white/10 text-xs text-left fira-code text-gray-400 mb-6 space-y-1">
               <div className="flex items-center gap-1.5 text-[#00F5FF]">
                 <Terminal size={13} />
-                <span>CYBER DEFENSE SYSTEM v3.0 (0ms DOM BLACKOUT)</span>
+                <span>CYBER DEFENSE SYSTEM v3.5 (DESKTOP + MOBILE)</span>
               </div>
               <div className="text-gray-500">
                 &gt; CAPTURE_INTERCEPT: <span className="text-[#39FF14]">ENGAGED ({triggerReason.toUpperCase()})</span>
               </div>
               <div className="text-gray-500">
-                &gt; MANUAL_UNLOCK_REQUIRED: <span className="text-[#00F5FF]">TRUE (ANTI-GAMEBAR)</span>
+                &gt; MANUAL_UNLOCK_REQUIRED: <span className="text-[#00F5FF]">TRUE (0ms DOM BLACKOUT)</span>
               </div>
             </div>
 
@@ -237,7 +353,7 @@ export function ScreenShieldOverlay() {
               <span>CLICK TO RESTORE DISPLAY</span>
             </button>
             <p className="text-[11px] text-gray-500 mt-2.5 fira-code">
-              Manual click required to unlock display
+              Manual tap/click required to unlock display
             </p>
           </div>
         </motion.div>
