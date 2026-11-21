@@ -363,13 +363,33 @@ img,
   user-drag: none !important;
 }
 
-/* Print Protection: hides images completely if trying to print or Save as PDF */
+/* Print Protection: hides entire page and images completely if trying to print or Save as PDF */
 @media print {
+  body,
+  main,
+  header,
+  footer,
   img, 
   .protected-image, 
   .protected-media,
   .certificate-shield {
     display: none !important;
     visibility: hidden !important;
+    opacity: 0 !important;
   }
+}
+
+/* 0ms Synchronous DOM Blackout for Anti-Screenshot & Anti-Recording Shield */
+html.cyber-shield-locked {
+  background-color: #050811 !important;
+}
+
+html.cyber-shield-locked main,
+html.cyber-shield-locked header,
+html.cyber-shield-locked footer {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  filter: blur(80px) brightness(0) !important;
+  transition: none !important;
+  pointer-events: none !important;
 }

@@ -10,7 +10,7 @@ export function Certifications() {
   const [customImages] = useState<Record<string, string>>(() => {
     const saved: Record<string, string> = {};
     try {
-      for (let i = 1; i <= 11; i++) {
+      for (let i = 1; i <= 16; i++) {
         const id = `cert-${i}`;
         const val = localStorage.getItem(`cert_image_${id}`);
         if (val) saved[id] = val;
@@ -22,6 +22,46 @@ export function Certifications() {
   });
 
   const rawCertificates = [
+    {
+      id: "cert-12",
+      title: "Ethical Hacker",
+      issuer: "Cisco Networking Academy",
+      category: "Cybersecurity",
+      color: "#00F5FF",
+      defaultUrl: "/assets/aistudio/1794924520136_5395519f.jpeg"
+    },
+    {
+      id: "cert-13",
+      title: "Networking Basics",
+      issuer: "Cisco Networking Academy",
+      category: "Networking",
+      color: "#00F5FF",
+      defaultUrl: "/assets/aistudio/1794923398893_fb0a9f2a.jpeg"
+    },
+    {
+      id: "cert-14",
+      title: "OPSWAT Cybersecurity Fundamentals Associate (OCFA)",
+      issuer: "OPSWAT Academy",
+      category: "Cybersecurity",
+      color: "#39FF14",
+      defaultUrl: "/assets/aistudio/1789873405430_c1b4b886.jpeg"
+    },
+    {
+      id: "cert-15",
+      title: "Introduction to Critical Infrastructure Protection (ICIP)",
+      issuer: "OPSWAT Academy",
+      category: "Cybersecurity",
+      color: "#39FF14",
+      defaultUrl: "/assets/aistudio/introduction_to_cip_e4c53b31.png"
+    },
+    {
+      id: "cert-16",
+      title: "Cyber Security — Level 3 (Advanced)",
+      issuer: "Pathline",
+      category: "Cybersecurity",
+      color: "#FF073A",
+      defaultUrl: "/assets/aistudio/1795292621455_67dcdfec.png"
+    },
     {
       id: "cert-1",
       title: "Financial Literacy Certificate",
@@ -101,6 +141,7 @@ export function Certifications() {
       category: "Banking",
       color: "#00F5FF",
       defaultUrl: "/cert-10.jpg"
+    },
     {
       id: "cert-11",
       title: "IT Foundations",
