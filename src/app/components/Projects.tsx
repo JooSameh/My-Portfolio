@@ -26,14 +26,14 @@ export function Projects() {
       icon: <Shield className="text-[#00F5FF]" size={20} />
     },
     {
-      title: "Cybersecurity Training Program - Ministry Initiative",
-      description: "Designed and delivered a comprehensive cybersecurity training curriculum for 45+ students across 3 cohorts under the Ministry of Youth & Sports. Covered network reconnaissance, secure coding practices, and practical penetration testing scenarios.",
-      image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
-      tools: ["Nmap", "Metasploit Framework", "Kali Linux", "Virtual Labs", "Training Materials"],
-      outcome: "Successfully trained 45+ students with 36+ hours of hands-on cybersecurity fundamentals. Recognized by Ministry of Youth & Sports as featured instructor and keynote speaker.",
-      github: null,
+      title: "Automated Network Recon & Vulnerability Audit Engine",
+      description: "Engineered an automated network auditing and reconnaissance engine using Python and Scapy. Implemented automated packet sniffing, TCP/UDP port mapping, service banner enumeration, and CVE correlation to accelerate penetration testing and host discovery.",
+      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
+      tools: ["Python", "Scapy", "Nmap Automation", "Socket Programming", "Vulnerability Assessment", "Kali Linux"],
+      outcome: "Streamlined attack surface mapping with automated reporting. Achieved rapid protocol inspection and CVE severity matching across subnets.",
+      github: "https://github.com/JooSameh",
       demo: null,
-      icon: <Users className="text-[#B026FF]" size={20} />
+      icon: <Network className="text-[#B026FF]" size={20} />
     }
   ];
 

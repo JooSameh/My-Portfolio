@@ -33,11 +33,40 @@ function apiPlugin() {
   return {
     name: 'api-middleware',
     configureServer(server: any) {
+      // 0. Global Security Headers (Anti-Clickjacking, MIME-Sniffing, XSS & Permissions)
+      server.middlewares.use((_req: any, res: any, next: any) => {
+        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        next();
+      });
+
       server.middlewares.use((req: any, res: any, next: any) => {
-        if (req.url === '/api/contact' && req.method === 'POST') {
+        // Explicit route match for /api/contact
+        if (req.url === '/api/contact' || req.url?.startsWith('/api/contact?')) {
+          // A. Method Enforcement (Broken Access Control & Method Spoofing)
+          if (req.method !== 'POST') {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Allow', 'POST');
+            res.statusCode = 405;
+            res.end(JSON.stringify({ success: false, error: 'Method Not Allowed. Only POST requests are accepted.' }));
+            return;
+          }
+
+          // B. Content-Type Enforcement (Anti-CSRF & Simple Request Bypass Prevention)
+          const contentType = req.headers['content-type'] || '';
+          if (!contentType.toLowerCase().includes('application/json')) {
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 415;
+            res.end(JSON.stringify({ success: false, error: 'Unsupported Media Type. Expected application/json.' }));
+            return;
+          }
+
           const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket?.remoteAddress || '127.0.0.1'
 
-          // 1. Rate Limiting Check
+          // 1. Rate Limiting Check (Anti-DoS)
           if (!checkRateLimit(clientIp)) {
             res.setHeader('Content-Type', 'application/json')
             res.statusCode = 429

@@ -1,6 +1,0 @@
-{
-  "summary": "Comprehensive Anti-Screen Capture & Recording Protection System:\n- Full-screen blur and security shield activated immediately when window loses focus (e.g., when Snipping Tool, screen recorder, or screenshot hotkeys take OS focus)\n- Keyboard capture interception for PrintScreen, Win+Shift+S, Cmd+Shift+3/4/5, and developer capture shortcuts, with clipboard clearing\n- Security Shield Overlay with cyberpunk visual aesthetic and instant auto-restore on window refocus\n- Global enforcement across the entire portfolio website without breaking legitimate user navigation",
-  "updatedAt": "2026-10-13T14:57:49.900799223Z",
-  "requestFeedback": true,
-  "userFacing": true
-}

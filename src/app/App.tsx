@@ -9,6 +9,7 @@ import { Skills } from './components/Skills';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
+import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { Toaster } from './components/ui/sonner';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -22,46 +23,83 @@ export default function App() {
       setShowScrollTop(window.scrollY > 500);
     };
 
-    // 1. Prevent Right-Click on any image or protected element
+    // 1. Prevent Right-Click on the entire website except within form inputs
     const handleContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
-      if (
-        target?.tagName === 'IMG' ||
-        target?.closest('img') ||
-        target?.classList.contains('image-shield') ||
-        target?.closest('.image-shield') ||
-        target?.closest('.protected-media')
-      ) {
+      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+      if (!isInput) {
         e.preventDefault();
       }
     };
 
-    // 2. Prevent dragging images to desktop / folders across Mac / Windows
-    const handleDragStart = (e: DragEvent) => {
+    // 2. Prevent copying text or assets
+    const handleCopy = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target?.tagName === 'IMG' || target?.closest('img')) {
+      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+      if (!isInput) {
         e.preventDefault();
       }
     };
 
-    // 3. Block Save Webpage (Ctrl/Cmd+S) and Print (Ctrl/Cmd+P) to protect assets
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+    // 3. Prevent cutting text
+    const handleCut = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+      if (!isInput) {
         e.preventDefault();
       }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+    };
+
+    // 4. Prevent text selection
+    const handleSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+      if (!isInput) {
+        e.preventDefault();
+      }
+    };
+
+    // 5. Prevent dragging images or text
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    // 6. Block copy shortcuts, source inspection, and save/print attempts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+
+      // Copy & Select-all outside form inputs
+      if (isCtrlOrMeta && !isInput && (e.key === 'c' || e.key === 'C' || e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+      }
+
+      // Save page (Ctrl/Cmd+S), Print (Ctrl/Cmd+P), View source (Ctrl/Cmd+U)
+      if (isCtrlOrMeta && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+      }
+
+      // F12 or Developer Tools shortcut attempts
+      if (e.key === 'F12' || (isCtrlOrMeta && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'c' || e.key === 'C' || e.key === 'j' || e.key === 'J'))) {
         e.preventDefault();
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('copy', handleCopy);
+    document.addEventListener('cut', handleCut);
+    document.addEventListener('selectstart', handleSelectStart);
     document.addEventListener('dragstart', handleDragStart);
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('cut', handleCut);
+      document.removeEventListener('selectstart', handleSelectStart);
       document.removeEventListener('dragstart', handleDragStart);
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -74,6 +112,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
       <Preloader />
+      <ScreenShieldOverlay />
       <Header />
       <main>
         <Hero />

@@ -145,7 +145,7 @@ export function CertificateModal({
                   />
 
                   {/* Anti-Theft Watermark Holographic Overlay */}
-                  <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center opacity-15 select-none overflow-hidden">
+                  <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center opacity-20 select-none overflow-hidden">
                     <div className="rotate-[-22deg] text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] text-[#00F5FF] text-center whitespace-nowrap bg-black/40 px-4 py-1 border border-[#00F5FF]/30 rounded">
                       CYBERSECURITY VERIFIED CREDENTIAL • NOT FOR DISTRIBUTION • PROTECTED VIEW
                     </div>

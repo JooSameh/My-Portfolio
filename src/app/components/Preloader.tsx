@@ -103,8 +103,8 @@ export function Preloader() {
 
             {/* Binary code animation */}
             <motion.div
-              className="mt-6 fira-code text-xs text-[#00F5FF]/50"
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              className="mt-6 fira-code text-xs text-[#00F5FF]/50 select-none pointer-events-none"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             >
               01001000 01100101 01101100 01101100 01101111

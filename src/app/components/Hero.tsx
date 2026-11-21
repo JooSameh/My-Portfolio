@@ -31,7 +31,7 @@ export function Hero() {
     }
   };
 
-  // Matrix and binary characters for cyberpunk effect
+  // Cyberpunk matrix & binary decorative symbols
   const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
   const binaryChars = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
@@ -54,33 +54,33 @@ export function Hero() {
             background: `radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)`,
           }}
         />
-        
-        {/* Matrix Rain Effect - Enhanced */}
-        <div className="absolute inset-0 opacity-20 overflow-hidden">
+
+        {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
+        <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
           {Array.from({ length: 25 }).map((_, i) => (
             <motion.div
               key={i}
-              className="absolute select-none fira-code"
+              className="absolute select-none fira-code pointer-events-none"
               style={{
-                left: `${Math.random() * 100}%`,
-                fontSize: `${Math.random() * 8 + 8}px`,
+                left: `${(i * 4) + 1}%`,
+                fontSize: `${(i % 3) * 3 + 9}px`,
                 color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8'
               }}
               animate={{
                 y: ['-10vh', '110vh'],
               }}
               transition={{
-                duration: Math.random() * 4 + 3,
+                duration: (i % 4) + 3.5,
                 repeat: Infinity,
-                delay: Math.random() * 3,
+                delay: (i % 5) * 0.7,
                 ease: "linear"
               }}
             >
-              {Array.from({ length: 20 }).map((_, j) => (
+              {Array.from({ length: 18 }).map((_, j) => (
                 <div key={j} style={{ opacity: 1 - (j * 0.05) }}>
                   {i % 2 === 0 
-                    ? matrixChars[Math.floor(Math.random() * matrixChars.length)]
-                    : binaryChars[Math.floor(Math.random() * binaryChars.length)]
+                    ? matrixChars[(i + j) % matrixChars.length]
+                    : binaryChars[(i * 2 + j) % binaryChars.length]
                   }
                 </div>
               ))}
@@ -160,34 +160,30 @@ export function Hero() {
         />
       </div>
 
-      {/* Floating Contact Card */}
+      {/* Cyber Defense Status HUD Node */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="absolute top-24 lg:top-28 right-8 glass rounded-xl p-4 z-20 hidden lg:block"
+        className="absolute top-24 lg:top-28 right-8 glass-strong rounded-xl p-3.5 z-20 hidden lg:block border border-[#00F5FF]/30 select-none shadow-[0_0_20px_rgba(0,245,255,0.15)]"
       >
-        <div className="text-center space-y-3">
-          <div className="text-xs text-[#00F5FF] uppercase tracking-wide orbitron">Contact</div>
-          <div className="flex gap-3 justify-center">
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue cursor-default select-none"
-            >
-              <Terminal size={16} className="text-[#00F5FF]" />
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue cursor-default select-none"
-            >
-              <Wifi size={16} className="text-[#00F5FF]" />
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="w-8 h-8 glass-strong rounded-lg flex items-center justify-center neon-blue cursor-default select-none"
-            >
-              <Code size={16} className="text-[#00F5FF]" />
-            </motion.div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#39FF14] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#39FF14]"></span>
+            </span>
+            <span className="text-[10px] text-[#39FF14] uppercase tracking-wider fira-code font-bold">DEFENSE ACTIVE</span>
+          </div>
+          <div className="text-[11px] fira-code text-gray-400 space-y-0.5 border-t border-white/10 pt-1.5">
+            <div className="flex justify-between gap-4">
+              <span>FIREWALL:</span>
+              <span className="text-[#00F5FF]">ENFORCED</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span>THREAT LEVEL:</span>
+              <span className="text-[#39FF14]">SECURE</span>
+            </div>
           </div>
         </div>
       </motion.div>

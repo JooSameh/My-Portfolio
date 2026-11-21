@@ -195,19 +195,15 @@ export function Contact() {
             <h3 className="text-2xl text-white mb-8 orbitron">Send a Message</h3>
             
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Honeypot Field - Hidden from real users */}
-              <div style={{ display: 'none' }} aria-hidden="true">
-                <label htmlFor="botField">Don't fill this out if you're human:</label>
-                <Input
-                  type="text"
-                  id="botField"
-                  name="botField"
-                  value={formData.botField}
-                  onChange={handleChange}
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
-              </div>
+              {/* Bot verification check */}
+              <input
+                type="hidden"
+                id="botField"
+                name="botField"
+                value={formData.botField}
+                onChange={handleChange}
+                autoComplete="off"
+              />
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>

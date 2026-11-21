@@ -135,48 +135,6 @@ export function Skills() {
             </motion.div>
           ))}
         </div>
-
-        {/* Core Competencies */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mt-16 text-center"
-        >
-          <h3 className="text-2xl text-white mb-8 orbitron">Core Competencies</h3>
-          <div className="flex flex-wrap justify-center gap-4">
-            {[
-              { label: "Penetration Testing", color: '#00F5FF' },
-              { label: "AI Development", color: '#39FF14' },
-              { label: "Technical Instruction", color: '#B026FF' },
-              { label: "Vulnerability Research", color: '#FF073A' },
-              { label: "Public Speaking", color: '#FFFF00' },
-              { label: "Team Leadership", color: '#FF6B35' },
-              { label: "Security Auditing", color: '#00F5FF' },
-              { label: "Conference Organization", color: '#39FF14' }
-            ].map((competency, index) => (
-              <motion.span
-                key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ 
-                  scale: 1.1,
-                  boxShadow: `0 0 20px ${competency.color}60`
-                }}
-                className="px-4 py-2 glass rounded-full border transition-all cursor-default fira-code"
-                style={{ 
-                  borderColor: `${competency.color}40`,
-                  color: competency.color
-                }}
-              >
-                {competency.label}
-              </motion.span>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

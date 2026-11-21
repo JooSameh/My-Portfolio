@@ -50,21 +50,6 @@ export function Experience() {
     }
   ];
 
-  const researchProjects = [
-    {
-      title: "Vulnerability Assessment",
-      description: "Conducted security audits on academic web portals; identified and reported critical vulnerabilities",
-      icon: Shield,
-      color: "#00F5FF"
-    },
-    {
-      title: "Arabic AI Project",
-      description: "Built a custom chatbot interface using Python & Gradio powered by Qwen 2.5 for Arabic language processing",
-      icon: Code,
-      color: "#39FF14"
-    }
-  ];
-
   return (
     <section id="experience" className="py-20 relative overflow-hidden">
       {/* Background Effects */}
@@ -164,86 +149,6 @@ export function Experience() {
             </motion.div>
           ))}
         </div>
-
-        {/* Independent Research Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h3 className="text-2xl text-white mb-8 text-center orbitron">
-            Independent Research & <span className="neon-text-blue">Projects</span>
-          </h3>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            {researchProjects.map((project, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ 
-                  scale: 1.02,
-                  boxShadow: `0 0 30px ${project.color}30`
-                }}
-                className="glass-strong p-6 rounded-lg border"
-                style={{ borderColor: `${project.color}30` }}
-              >
-                <div className="flex items-start gap-4">
-                  <motion.div
-                    className="w-12 h-12 glass rounded-lg flex items-center justify-center border flex-shrink-0"
-                    style={{ borderColor: `${project.color}40` }}
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <project.icon size={20} style={{ color: project.color }} />
-                  </motion.div>
-                  
-                  <div>
-                    <h4 className="text-lg text-white mb-2 orbitron">{project.title}</h4>
-                    <p className="text-gray-300 text-sm">{project.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Core Competencies Summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-12 text-center"
-        >
-          <div className="glass-strong border border-[#00F5FF]/30 rounded-lg p-6 max-w-3xl mx-auto">
-            <h4 className="text-lg text-white mb-3 orbitron">Core Competencies</h4>
-            <div className="flex flex-wrap gap-3 justify-center">
-              {[
-                "Technical Team Leadership",
-                "Public Speaking",
-                "PR & Conference Organizing",
-                "Professional Scriptwriting",
-                "Curriculum Development",
-                "Security Research"
-              ].map((skill, index) => (
-                <motion.span
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ scale: 1.1 }}
-                  className="px-4 py-2 glass rounded-full text-sm border border-[#00F5FF]/30 text-[#00F5FF] fira-code"
-                >
-                  {skill}
-                </motion.span>
-              ))}
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

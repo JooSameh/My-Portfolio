@@ -66,6 +66,14 @@ export function isRateLimited(clientIp: string): boolean {
 // 4. Hono App Configuration
 const app = new Hono()
 
+app.use('*', async (c: any, next: any) => {
+  await next()
+  c.header('X-Frame-Options', 'SAMEORIGIN')
+  c.header('X-Content-Type-Options', 'nosniff')
+  c.header('X-XSS-Protection', '1; mode=block')
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+})
+
 // Handler for contact submission
 const handleContact = async (c: any) => {
   // A. Check Content-Length for Payload Size Limit
@@ -166,5 +174,14 @@ const handleContact = async (c: any) => {
 app.post('/', handleContact)
 app.post('/api/contact', handleContact)
 app.post('/contact', handleContact)
+
+// Catch-all for invalid HTTP methods (Method Not Allowed)
+app.all('*', (c: any) => {
+  if (c.req.method !== 'POST') {
+    c.header('Allow', 'POST')
+    return c.json({ success: false, error: 'Method Not Allowed. Only POST requests are accepted.' }, 405)
+  }
+  return c.json({ success: false, error: 'Endpoint not found' }, 404)
+})
 
 export default handle(app)

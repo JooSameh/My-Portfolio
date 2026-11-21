@@ -336,15 +336,29 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Multi-Platform Image Protection Rules (iOS, Android, Windows, Mac) */
+/* Universal Anti-Copy & Selection Protection (iOS, Android, Windows, Mac) */
+*,
+*::before,
+*::after {
+  -webkit-touch-callout: none !important; /* Disables iOS long-press callout menu */
+  -webkit-user-select: none !important;  /* Disables text & media selection */
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Allow typing and interaction inside form fields only */
+input,
+textarea {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
 img, 
 .protected-media,
 .protected-image {
-  -webkit-touch-callout: none !important; /* Prevents iOS Safari image save/share menu */
-  -webkit-user-select: none !important;  /* Safari/Chrome text & image selection */
-  -moz-user-select: none !important;     /* Firefox */
-  -ms-user-select: none !important;      /* IE/Edge */
-  user-select: none !important;
   -webkit-user-drag: none !important;    /* Prevents dragging image to desktop or folder */
   user-drag: none !important;
 }
@@ -357,14 +371,5 @@ img,
   .certificate-shield {
     display: none !important;
     visibility: hidden !important;
-  }
-  body::before {
-    content: "PROTECTED CREDENTIAL - UNAUTHORIZED REPRODUCTION PROHIBITED";
-    display: block;
-    font-size: 18pt;
-    color: #ff073a;
-    text-align: center;
-    margin-top: 50px;
-    font-family: monospace;
   }
 }
