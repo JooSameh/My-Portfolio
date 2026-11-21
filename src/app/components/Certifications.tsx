@@ -101,7 +101,6 @@ export function Certifications() {
       category: "Banking",
       color: "#00F5FF",
       defaultUrl: "/cert-10.jpg"
-    },
     {
       id: "cert-11",
       title: "IT Foundations",
@@ -109,6 +108,39 @@ export function Certifications() {
       category: "Technology",
       color: "#39FF14",
       defaultUrl: "/cert-11.jpg"
+    },
+    {
+     id: "cert-12",
+      title: "Networking Basics",
+      issuer: "Cisco Networking Academy",
+      category: "Technology",
+      color: "#39FF14",
+      defaultUrl: "/cert-12.jpg"
+    {
+    },
+ id: "cert-13",
+      title: "Ethical Hacker",
+      issuer: "Cisco Networking Academy",
+      category: "Technology",
+      color: "#39FF14",
+      defaultUrl: "/cert-13.jpg"
+    {
+    },
+ id: "cert-14",
+      title: "Introduction to CIP",
+      issuer: "OPSWAT Academy",
+      category: "Banking",
+      color: "#39FF14",
+      defaultUrl: "/cert-14.jpg"
+    {
+    },
+ id: "cert-15",
+      title: "Cybersecurity Fundamentals Associate",
+      issuer: "OPSWAT Academy",
+      category: "Banking",
+      color: "#39FF14",
+      defaultUrl: "/cert-15.jpg"
+    {
     }
   ];
 
