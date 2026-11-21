@@ -9,6 +9,7 @@ import { Skills } from './components/Skills';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
+import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { Toaster } from './components/ui/sonner';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -133,6 +134,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
       <Preloader />
+      <ScreenShieldOverlay />
       <Header />
       <main>
         <Hero />

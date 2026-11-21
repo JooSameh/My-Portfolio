@@ -378,3 +378,17 @@ img,
     opacity: 0 !important;
   }
 }
+
+/* 0ms Synchronous DOM Blackout for Smart Auto-Shield */
+html.cyber-shield-locked {
+  background-color: #050811 !important;
+}
+
+html.cyber-shield-locked main,
+html.cyber-shield-locked header,
+html.cyber-shield-locked footer {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  filter: blur(80px) brightness(0) !important;
+  transition: none !important;
+}
