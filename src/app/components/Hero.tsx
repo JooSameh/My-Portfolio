@@ -9,7 +9,11 @@ export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [profileImage] = useState<string>(() => {
     try {
-      return localStorage.getItem('custom_profile_image') || '/profile.png';
+      const saved = localStorage.getItem('custom_profile_image');
+      if (saved && (/^\/[a-zA-Z0-9._/-]+$/.test(saved) || /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(saved))) {
+        return saved;
+      }
+      return '/profile.png';
     } catch {
       return '/profile.png';
     }

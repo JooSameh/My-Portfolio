@@ -1,18 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldAlert, EyeOff, Terminal, CheckCircle2, Lock } from 'lucide-react';
+import { ShieldAlert, EyeOff, Terminal, CheckCircle2 } from 'lucide-react';
 
 type TriggerReason = 'focus_lost' | 'shortcut' | 'cursor_exit' | 'recording_blocked';
 
 export function ScreenShieldOverlay() {
   const [isShieldActive, setIsShieldActive] = useState(false);
   const [triggerReason, setTriggerReason] = useState<TriggerReason>('focus_lost');
-  const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
 
   // Track lock state synchronously so event listeners have 0ms accuracy
   const isLockedRef = useRef(false);
-  const lockReasonRef = useRef<TriggerReason>('focus_lost');
-  const unlockAllowedAtRef = useRef<number>(0);
+  const lockTimestampRef = useRef<number>(0);
 
   const overwriteClipboard = useCallback(() => {
     const policyText = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
@@ -27,45 +25,22 @@ export function ScreenShieldOverlay() {
   }, []);
 
   const restoreDisplay = useCallback(() => {
-    if (performance.now() < unlockAllowedAtRef.current) return;
     isLockedRef.current = false;
-    setCooldownSeconds(0);
     document.documentElement.classList.remove('cyber-shield-locked');
     setIsShieldActive(false);
   }, []);
 
   const engageShield = useCallback((reason: TriggerReason) => {
-    // 0ms synchronous DOM blackout BEFORE Snipping Tool "New", Win+G, or Video Recorders can grab the framebuffer
+    // 0ms synchronous DOM blackout BEFORE Snipping Tool "New", Win+G, or PrintScreen can grab the frame
     document.documentElement.classList.add('cyber-shield-locked');
     isLockedRef.current = true;
-    lockReasonRef.current = reason;
-
-    // Enforce a 3.5-second anti-recorder hold for shortcuts & focus loss (defeats Snipping Tool 3-2-1 video countdown),
-    // and 1.2-second hold for cursor exit
-    const holdDurationMs = reason === 'cursor_exit' ? 1200 : 3500;
-    unlockAllowedAtRef.current = performance.now() + holdDurationMs;
-    setCooldownSeconds(Math.ceil(holdDurationMs / 1000));
-
+    lockTimestampRef.current = performance.now();
     setTriggerReason(reason);
     setIsShieldActive(true);
   }, []);
 
-  // Update visual countdown timer while shield is active
   useEffect(() => {
-    if (!isShieldActive) return;
-    const interval = window.setInterval(() => {
-      const remainingMs = unlockAllowedAtRef.current - performance.now();
-      if (remainingMs <= 0) {
-        setCooldownSeconds(0);
-      } else {
-        setCooldownSeconds(Math.ceil(remainingMs / 1000));
-      }
-    }, 200);
-    return () => window.clearInterval(interval);
-  }, [isShieldActive]);
-
-  useEffect(() => {
-    // 0. Block Browser / WebRTC / Extension Video Recording APIs (getDisplayMedia & captureStream)
+    // 0. Block Browser / WebRTC / Extension Screen Recording APIs (getDisplayMedia & captureStream)
     try {
       if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
         navigator.mediaDevices.getDisplayMedia = async () => {
@@ -94,7 +69,7 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 3. Desktop Pointer Exit Tripwire (CRITICAL for Snipping Tool "New" & Video Record toolbar):
+    // 3. Desktop Pointer Exit Tripwire (locks at 0ms when cursor moves off the page toward Snipping Tool "New")
     const handleMouseLeave = (e: MouseEvent) => {
       if (!window.matchMedia('(pointer: fine)').matches) return;
 
@@ -109,26 +84,25 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 4. Smart Auto-Restore ONLY on active Scroll or Click inside the focused webpage AFTER anti-recorder cooldown:
+    // 4. Instant Smooth Restore on Scroll or Click inside the focused webpage (no artificial countdown)
     const handleScrollOrClickRestore = () => {
       if (!isLockedRef.current) return;
       if (document.hidden || !document.hasFocus()) return;
-      if (performance.now() < unlockAllowedAtRef.current) return;
+      // Minimal 250ms debounce so the key press itself doesn't immediately unlock
+      if (performance.now() - lockTimestampRef.current < 250) return;
       restoreDisplay();
     };
 
-    // 5. Pre-emptive 0ms Capture & Video Recording Shortcut Interception
+    // 5. Pre-emptive 0ms Capture & Inspection Shortcut Interception (Arabic & English keyboard safe via e.code/e.keyCode)
     const isCaptureKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTypingInForm = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
       const key = e.key || '';
       const code = e.code || '';
+      const kc = e.keyCode || e.which;
 
-      // PrintScreen (keydown or keyup keyCode 44)
-      if (
-        key === 'PrintScreen' ||
-        code === 'PrintScreen' ||
-        e.keyCode === 44 ||
-        e.which === 44
-      ) {
+      // PrintScreen (keydown or keyup keyCode 44) — ALWAYS blocked even inside inputs
+      if (key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
         return true;
       }
 
@@ -145,17 +119,49 @@ export function ScreenShieldOverlay() {
         return true;
       }
 
-      // Pre-emptive Alt key (catches Win+Alt+R video record, Alt+F9 ShadowPlay, Alt+PrtScn, Alt+Tab)
+      // Function keys (F9-F12 including F12 DevTools keyCode 123) — ALWAYS blocked
+      if (['F9', 'F10', 'F11', 'F12'].includes(code) || ['F9', 'F10', 'F11', 'F12'].includes(key) || kc === 123) {
+        return true;
+      }
+
+      // Ctrl + U (View Source), Ctrl + S (Save), Ctrl + P (Print) — ALWAYS blocked in Arabic & English
+      if (
+        e.ctrlKey &&
+        (code === 'KeyU' || kc === 85 ||
+         code === 'KeyS' || kc === 83 ||
+         code === 'KeyP' || kc === 80)
+      ) {
+        return true;
+      }
+
+      // Explicit DevTools / Recorder Ctrl + Shift combinations (I, J, C, K, R, E, S) — ALWAYS blocked
+      if (
+        e.ctrlKey &&
+        e.shiftKey &&
+        (code === 'KeyI' || kc === 73 ||
+         code === 'KeyJ' || kc === 74 ||
+         code === 'KeyC' || kc === 67 ||
+         code === 'KeyK' || kc === 75 ||
+         code === 'KeyR' || kc === 82 ||
+         code === 'KeyE' || kc === 69 ||
+         code === 'KeyS' || kc === 83)
+      ) {
+        return true;
+      }
+
+      // Allow Alt+Shift / Ctrl+Shift keyboard language switching & text selection ONLY while typing inside Contact form inputs
+      if (isTypingInForm) {
+        if (e.altKey && (code === 'F9' || code === 'F10' || code === 'KeyR' || code === 'PrintScreen')) {
+          return true;
+        }
+        return false;
+      }
+
+      // Outside form inputs: pre-emptive Alt key (Win+Alt+R, Alt+F9, Alt+PrtScn, Alt+Tab) & Ctrl+Shift
       if (key === 'Alt' || code === 'AltLeft' || code === 'AltRight' || e.altKey) {
         return true;
       }
 
-      // Dedicated video recording function keys (F9, F10, F11, F12)
-      if (['F9', 'F10', 'F11', 'F12'].includes(key)) {
-        return true;
-      }
-
-      // Ctrl + Shift combinations (Ctrl+Shift+R, Ctrl+Shift+E, Ctrl+Shift+S, etc.)
       if (e.ctrlKey && e.shiftKey) {
         return true;
       }
@@ -166,6 +172,7 @@ export function ScreenShieldOverlay() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isCaptureKey(e)) {
         e.preventDefault();
+        e.stopPropagation();
         engageShield('shortcut');
         overwriteClipboard();
       }
@@ -174,12 +181,13 @@ export function ScreenShieldOverlay() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (isCaptureKey(e)) {
         e.preventDefault();
+        e.stopPropagation();
         engageShield('shortcut');
         overwriteClipboard();
       }
     };
 
-    // 6. High-frequency focus transition watchdog (80ms)
+    // 6. Focus transition watchdog (100ms)
     let wasFocused = document.hasFocus();
     const focusWatchdog = window.setInterval(() => {
       const currentlyFocused = document.hasFocus();
@@ -187,7 +195,7 @@ export function ScreenShieldOverlay() {
         engageShield('focus_lost');
       }
       wasFocused = currentlyFocused;
-    }, 80);
+    }, 100);
 
     window.addEventListener('blur', handleBlur, true);
     document.addEventListener('visibilitychange', handleVisibilityChange, true);
@@ -203,7 +211,7 @@ export function ScreenShieldOverlay() {
       document.documentElement.classList.remove('cyber-shield-locked');
       window.removeEventListener('blur', handleBlur, true);
       document.removeEventListener('visibilitychange', handleVisibilityChange, true);
-      document.removeEventListener('mouseleave', handleMouseLeave, true);
+      document.documentElement.removeEventListener('mouseleave', handleMouseLeave, true);
       window.removeEventListener('wheel', handleScrollOrClickRestore);
       window.removeEventListener('pointerdown', handleScrollOrClickRestore);
       window.removeEventListener('touchmove', handleScrollOrClickRestore);
@@ -246,39 +254,32 @@ export function ScreenShieldOverlay() {
 
             <p className="text-gray-300 text-sm leading-relaxed mb-6 fira-code">
               {triggerReason === 'recording_blocked'
-                ? 'Screen recording stream intercepted and blocked by security policy.'
+                ? 'Browser screen recording stream intercepted and blocked by security policy.'
                 : triggerReason === 'shortcut'
-                ? 'Capture or recording shortcut intercepted (Win+G / Win+Alt+R / Snipping / PrintScreen).'
+                ? 'Capture shortcut intercepted (Win+G / Win+Shift+S / PrintScreen).'
                 : triggerReason === 'cursor_exit'
-                ? 'Cursor exited webpage boundary (Snipping Tool / Screen Recorder protection).'
-                : 'External capture or recording tool active. Display obscured to protect portfolio assets.'}
+                ? 'Cursor exited webpage boundary (Snipping Tool / External App protection).'
+                : 'External capture tool or window active. Display obscured to protect portfolio assets.'}
             </p>
 
             {/* Terminal status box */}
             <div className="bg-[#03050a] p-3 rounded-lg border border-white/10 text-xs text-left fira-code text-gray-400 mb-4 space-y-1">
               <div className="flex items-center gap-1.5 text-[#00F5FF]">
                 <Terminal size={13} />
-                <span>SMART CYBER SHIELD v4.6 (YOUSSEF EL-GENDY)</span>
+                <span>SMART CYBER SHIELD (YOUSSEF EL-GENDY)</span>
               </div>
               <div className="text-gray-500">
                 &gt; CAPTURE_INTERCEPT: <span className="text-[#39FF14]">LOCKED ({triggerReason.toUpperCase()})</span>
               </div>
               <div className="text-gray-500">
-                &gt; ANTI_RECORDER_HOLD: <span className="text-[#00F5FF]">{cooldownSeconds > 0 ? `LOCKED (${cooldownSeconds}s)` : 'READY TO RESTORE'}</span>
+                &gt; RESTORE_MODE: <span className="text-[#00F5FF]">INSTANT ON CLICK OR SCROLL</span>
               </div>
             </div>
 
-            {cooldownSeconds > 0 ? (
-              <div className="inline-flex items-center gap-2 text-xs text-amber-400 fira-code">
-                <Lock size={14} />
-                <span>Anti-recorder cooldown active ({cooldownSeconds}s)...</span>
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 text-xs text-[#39FF14] fira-code">
-                <CheckCircle2 size={14} />
-                <span>Scroll or click anywhere inside the page to resume</span>
-              </div>
-            )}
+            <div className="inline-flex items-center gap-2 text-xs text-[#39FF14] fira-code">
+              <CheckCircle2 size={14} />
+              <span>Scroll or click anywhere inside the page to resume immediately</span>
+            </div>
           </div>
         </motion.div>
       )}

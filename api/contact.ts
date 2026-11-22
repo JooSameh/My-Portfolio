@@ -68,14 +68,25 @@ const app = new Hono()
 
 app.use('*', async (c: any, next: any) => {
   await next()
+  c.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
   c.header('X-Frame-Options', 'SAMEORIGIN')
   c.header('X-Content-Type-Options', 'nosniff')
   c.header('X-XSS-Protection', '1; mode=block')
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+  c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), display-capture=()')
 })
 
 // Handler for contact submission
 const handleContact = async (c: any) => {
+  // 0. Strict Content-Type Enforcement (Anti-CSRF simple request protection)
+  const contentType = c.req.header('content-type') || ''
+  if (!contentType.toLowerCase().includes('application/json')) {
+    return c.json(
+      { success: false, error: 'Unsupported Media Type. Expected application/json.' },
+      415
+    )
+  }
+
   // A. Check Content-Length for Payload Size Limit
   const contentLength = c.req.header('content-length')
   if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {

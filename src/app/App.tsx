@@ -71,30 +71,69 @@ export default function App() {
       e.preventDefault();
     };
 
-    // 6. Block copy shortcuts, source inspection, and save/print attempts silently
+    // 6. Block copy shortcuts, view-source (Ctrl+U), DevTools (F12 / Ctrl+Shift+I/J/C/K), and save/print
+    // Uses physical key `e.code` & `e.keyCode` so Arabic or non-Latin keyboard layouts CANNOT bypass shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      const code = e.code || '';
+      const keyLower = (e.key || '').toLowerCase();
+      const kc = e.keyCode || e.which;
 
-      // Copy & Select-all outside form inputs
-      if (isCtrlOrMeta && !isInput && (e.key === 'c' || e.key === 'C' || e.key === 'a' || e.key === 'A')) {
+      const blockEvent = () => {
         e.preventDefault();
+        e.stopPropagation();
+      };
+
+      // F12 (DevTools)
+      if (code === 'F12' || keyLower === 'f12' || kc === 123) {
+        blockEvent();
+        return;
       }
 
-      // Save page (Ctrl/Cmd+S), Print (Ctrl/Cmd+P), View source (Ctrl/Cmd+U)
-      if (isCtrlOrMeta && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'u' || e.key === 'U')) {
-        e.preventDefault();
+      // View Source (Ctrl/Cmd + U), Save Page (Ctrl/Cmd + S), Print (Ctrl/Cmd + P)
+      if (
+        isCtrlOrMeta &&
+        (code === 'KeyU' || kc === 85 || keyLower === 'u' ||
+         code === 'KeyS' || kc === 83 || keyLower === 's' ||
+         code === 'KeyP' || kc === 80 || keyLower === 'p')
+      ) {
+        blockEvent();
+        return;
       }
 
-      // F12 or Developer Tools shortcut attempts
-      if (e.key === 'F12' || (isCtrlOrMeta && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'c' || e.key === 'C' || e.key === 'j' || e.key === 'J'))) {
-        e.preventDefault();
+      // DevTools Inspect / Console / Element Picker:
+      // Windows/Linux: Ctrl + Shift + I / J / C / K
+      // macOS: Cmd + Option/Alt + I / J / C / U
+      if (
+        isCtrlOrMeta &&
+        (e.shiftKey || e.altKey) &&
+        (code === 'KeyI' || kc === 73 || keyLower === 'i' ||
+         code === 'KeyJ' || kc === 74 || keyLower === 'j' ||
+         code === 'KeyC' || kc === 67 || keyLower === 'c' ||
+         code === 'KeyK' || kc === 75 || keyLower === 'k' ||
+         code === 'KeyU' || kc === 85 || keyLower === 'u')
+      ) {
+        blockEvent();
+        return;
+      }
+
+      // Copy & Select-all outside form inputs (works in Arabic & English keyboard layouts)
+      if (
+        isCtrlOrMeta &&
+        !isInput &&
+        (code === 'KeyC' || kc === 67 || keyLower === 'c' ||
+         code === 'KeyA' || kc === 65 || keyLower === 'a' ||
+         code === 'KeyX' || kc === 88 || keyLower === 'x')
+      ) {
+        blockEvent();
+        return;
       }
 
       // PrintScreen clipboard protection
-      if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
-        e.preventDefault();
+      if (e.key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
+        blockEvent();
         try {
           document.execCommand('copy');
           navigator.clipboard?.writeText(POLICY_MESSAGE).catch(() => {});
@@ -103,8 +142,11 @@ export default function App() {
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+      const code = e.code || '';
+      const kc = e.keyCode || e.which;
+      if (e.key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
         e.preventDefault();
+        e.stopPropagation();
         try {
           document.execCommand('copy');
           navigator.clipboard?.writeText(POLICY_MESSAGE).catch(() => {});
@@ -113,23 +155,25 @@ export default function App() {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('copy', handleCopy);
-    document.addEventListener('cut', handleCut);
-    document.addEventListener('selectstart', handleSelectStart);
-    document.addEventListener('dragstart', handleDragStart);
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('contextmenu', handleContextMenu, true);
+    document.addEventListener('copy', handleCopy, true);
+    document.addEventListener('cut', handleCut, true);
+    document.addEventListener('selectstart', handleSelectStart, true);
+    document.addEventListener('dragstart', handleDragStart, true);
+    window.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('keyup', handleKeyUp, true);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('copy', handleCopy);
-      document.removeEventListener('cut', handleCut);
-      document.removeEventListener('selectstart', handleSelectStart);
-      document.removeEventListener('dragstart', handleDragStart);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('contextmenu', handleContextMenu, true);
+      document.removeEventListener('copy', handleCopy, true);
+      document.removeEventListener('cut', handleCut, true);
+      document.removeEventListener('selectstart', handleSelectStart, true);
+      document.removeEventListener('dragstart', handleDragStart, true);
+      window.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('keyup', handleKeyUp, true);
     };
   }, []);
 

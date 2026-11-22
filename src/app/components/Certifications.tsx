@@ -6,14 +6,17 @@ import { CertificateModal, CertificateData } from './CertificateModal';
 export function Certifications() {
   const [selectedCertId, setSelectedCertId] = useState<string | null>(null);
 
-  // Preserve any custom attached images from localStorage
+  // Preserve any custom attached images from localStorage (strictly validated against untrusted external URLs)
   const [customImages] = useState<Record<string, string>>(() => {
     const saved: Record<string, string> = {};
+    const isSafeImageSrc = (src: string) =>
+      /^\/[a-zA-Z0-9._/-]+$/.test(src) ||
+      /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
     try {
       for (let i = 1; i <= 16; i++) {
         const id = `cert-${i}`;
         const val = localStorage.getItem(`cert_image_${id}`);
-        if (val) saved[id] = val;
+        if (val && isSafeImageSrc(val)) saved[id] = val;
       }
     } catch (e) {
       console.error(e);
