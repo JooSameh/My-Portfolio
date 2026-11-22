@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldAlert, EyeOff, Terminal, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, EyeOff, Terminal, CheckCircle2, Lock } from 'lucide-react';
 
 type TriggerReason = 'focus_lost' | 'shortcut' | 'cursor_exit' | 'recording_blocked';
 
 export function ScreenShieldOverlay() {
   const [isShieldActive, setIsShieldActive] = useState(false);
   const [triggerReason, setTriggerReason] = useState<TriggerReason>('focus_lost');
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
 
   // Track lock state synchronously so event listeners have 0ms accuracy
   const isLockedRef = useRef(false);
   const lockReasonRef = useRef<TriggerReason>('focus_lost');
-  const lockTimestampRef = useRef<number>(0);
+  const unlockAllowedAtRef = useRef<number>(0);
 
   const overwriteClipboard = useCallback(() => {
     const policyText = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
@@ -26,7 +27,9 @@ export function ScreenShieldOverlay() {
   }, []);
 
   const restoreDisplay = useCallback(() => {
+    if (performance.now() < unlockAllowedAtRef.current) return;
     isLockedRef.current = false;
+    setCooldownSeconds(0);
     document.documentElement.classList.remove('cyber-shield-locked');
     setIsShieldActive(false);
   }, []);
@@ -36,10 +39,30 @@ export function ScreenShieldOverlay() {
     document.documentElement.classList.add('cyber-shield-locked');
     isLockedRef.current = true;
     lockReasonRef.current = reason;
-    lockTimestampRef.current = performance.now();
+
+    // Enforce a 3.5-second anti-recorder hold for shortcuts & focus loss (defeats Snipping Tool 3-2-1 video countdown),
+    // and 1.2-second hold for cursor exit
+    const holdDurationMs = reason === 'cursor_exit' ? 1200 : 3500;
+    unlockAllowedAtRef.current = performance.now() + holdDurationMs;
+    setCooldownSeconds(Math.ceil(holdDurationMs / 1000));
+
     setTriggerReason(reason);
     setIsShieldActive(true);
   }, []);
+
+  // Update visual countdown timer while shield is active
+  useEffect(() => {
+    if (!isShieldActive) return;
+    const interval = window.setInterval(() => {
+      const remainingMs = unlockAllowedAtRef.current - performance.now();
+      if (remainingMs <= 0) {
+        setCooldownSeconds(0);
+      } else {
+        setCooldownSeconds(Math.ceil(remainingMs / 1000));
+      }
+    }, 200);
+    return () => window.clearInterval(interval);
+  }, [isShieldActive]);
 
   useEffect(() => {
     // 0. Block Browser / WebRTC / Extension Video Recording APIs (getDisplayMedia & captureStream)
@@ -71,8 +94,7 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 3. Desktop Pointer Exit Tripwire (CRITICAL for Snipping Tool "New" & Video Record button):
-    // Locks at 0ms as soon as the desktop cursor exits the webpage to click Snipping Tool or a recorder bar.
+    // 3. Desktop Pointer Exit Tripwire (CRITICAL for Snipping Tool "New" & Video Record toolbar):
     const handleMouseLeave = (e: MouseEvent) => {
       if (!window.matchMedia('(pointer: fine)').matches) return;
 
@@ -87,27 +109,15 @@ export function ScreenShieldOverlay() {
       }
     };
 
-    // 4. Smart Auto-Restore ONLY on active Scroll or Click inside the focused webpage:
-    // Why we do NOT unlock on mousemove:
-    // When recording video with Snipping Tool or Game Bar, the user moves their mouse across the webpage
-    // to draw the recording area or during the 3-second countdown. By ignoring passive mousemove and
-    // requiring the page to be focused + an active scroll (wheel/touchmove) or click inside the page,
-    // dragging a video recording box across the page keeps the screen 100% locked!
+    // 4. Smart Auto-Restore ONLY on active Scroll or Click inside the focused webpage AFTER anti-recorder cooldown:
     const handleScrollOrClickRestore = () => {
       if (!isLockedRef.current) return;
       if (document.hidden || !document.hasFocus()) return;
-      // Enforce a 600ms guard after lock so rapid shortcut/overlay transitions never auto-unlock
-      if (performance.now() - lockTimestampRef.current < 600) return;
+      if (performance.now() < unlockAllowedAtRef.current) return;
       restoreDisplay();
     };
 
     // 5. Pre-emptive 0ms Capture & Video Recording Shortcut Interception
-    // Covers:
-    // - PrintScreen / Alt+PrtScn
-    // - Win+G (Xbox Game Bar), Win+Alt+R (Game Bar Direct Video Record), Win+Shift+S (Snipping Tool)
-    // - Alt+F9 / Alt+F10 (Nvidia ShadowPlay Video Record), Alt+R (AMD Radeon ReLive)
-    // - F9 / F10 / F11 / F12 (OBS / Bandicam / Fraps / ShareX default video recording hotkeys)
-    // - Ctrl+Shift+R / Ctrl+Shift+E (Screen recorder hotkeys)
     const isCaptureKey = (e: KeyboardEvent) => {
       const key = e.key || '';
       const code = e.code || '';
@@ -193,7 +203,7 @@ export function ScreenShieldOverlay() {
       document.documentElement.classList.remove('cyber-shield-locked');
       window.removeEventListener('blur', handleBlur, true);
       document.removeEventListener('visibilitychange', handleVisibilityChange, true);
-      document.documentElement.removeEventListener('mouseleave', handleMouseLeave, true);
+      document.removeEventListener('mouseleave', handleMouseLeave, true);
       window.removeEventListener('wheel', handleScrollOrClickRestore);
       window.removeEventListener('pointerdown', handleScrollOrClickRestore);
       window.removeEventListener('touchmove', handleScrollOrClickRestore);
@@ -238,30 +248,37 @@ export function ScreenShieldOverlay() {
               {triggerReason === 'recording_blocked'
                 ? 'Screen recording stream intercepted and blocked by security policy.'
                 : triggerReason === 'shortcut'
-                ? 'Capture or recording shortcut intercepted (Win+G / Win+Alt+R / Snipping / PrintScreen). Scroll or click on the page once you return.'
+                ? 'Capture or recording shortcut intercepted (Win+G / Win+Alt+R / Snipping / PrintScreen).'
                 : triggerReason === 'cursor_exit'
-                ? 'Cursor exited webpage boundary (Snipping Tool / Screen Recorder protection). Scroll or click inside the page to resume.'
-                : 'External capture or recording tool active. Scroll or click inside the webpage to restore display.'}
+                ? 'Cursor exited webpage boundary (Snipping Tool / Screen Recorder protection).'
+                : 'External capture or recording tool active. Display obscured to protect portfolio assets.'}
             </p>
 
             {/* Terminal status box */}
             <div className="bg-[#03050a] p-3 rounded-lg border border-white/10 text-xs text-left fira-code text-gray-400 mb-4 space-y-1">
               <div className="flex items-center gap-1.5 text-[#00F5FF]">
                 <Terminal size={13} />
-                <span>SMART CYBER SHIELD v4.5 (YOUSSEF EL-GENDY)</span>
+                <span>SMART CYBER SHIELD v4.6 (YOUSSEF EL-GENDY)</span>
               </div>
               <div className="text-gray-500">
                 &gt; CAPTURE_INTERCEPT: <span className="text-[#39FF14]">LOCKED ({triggerReason.toUpperCase()})</span>
               </div>
               <div className="text-gray-500">
-                &gt; RESTORE_MODE: <span className="text-[#00F5FF]">AUTO ON SCROLL OR CLICK</span>
+                &gt; ANTI_RECORDER_HOLD: <span className="text-[#00F5FF]">{cooldownSeconds > 0 ? `LOCKED (${cooldownSeconds}s)` : 'READY TO RESTORE'}</span>
               </div>
             </div>
 
-            <div className="inline-flex items-center gap-2 text-xs text-[#39FF14] fira-code">
-              <CheckCircle2 size={14} />
-              <span>Scroll or click anywhere inside the page to resume</span>
-            </div>
+            {cooldownSeconds > 0 ? (
+              <div className="inline-flex items-center gap-2 text-xs text-amber-400 fira-code">
+                <Lock size={14} />
+                <span>Anti-recorder cooldown active ({cooldownSeconds}s)...</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 text-xs text-[#39FF14] fira-code">
+                <CheckCircle2 size={14} />
+                <span>Scroll or click anywhere inside the page to resume</span>
+              </div>
+            )}
           </div>
         </motion.div>
       )}
