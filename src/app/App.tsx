@@ -206,6 +206,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             onClick={scrollToTop}
+            aria-label="Scroll to top"
             className="fixed bottom-8 right-8 z-50 w-12 h-12 glass-strong rounded-full flex items-center justify-center border border-[#00F5FF]/40 hover:neon-blue transition-all"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}

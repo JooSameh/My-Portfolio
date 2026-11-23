@@ -52,7 +52,7 @@ export function About() {
               <div className="w-10 h-10 rounded-lg glass flex items-center justify-center mb-4 border border-[#00F5FF]/40">
                 <Shield className="text-[#00F5FF]" size={20} />
               </div>
-              <h4 className="text-white orbitron font-bold mb-1 text-sm">Specialization</h4>
+              <h3 className="text-white orbitron font-bold mb-1 text-sm">Specialization</h3>
               <p className="text-gray-300 text-xs fira-code leading-relaxed">
                 Offensive Security, Vulnerability Research & AI Model Integration
               </p>
@@ -62,7 +62,7 @@ export function About() {
               <div className="w-10 h-10 rounded-lg glass flex items-center justify-center mb-4 border border-[#39FF14]/40">
                 <Award className="text-[#39FF14]" size={20} />
               </div>
-              <h4 className="text-white orbitron font-bold mb-1 text-sm">Martial Arts Captain</h4>
+              <h3 className="text-white orbitron font-bold mb-1 text-sm">Martial Arts Captain</h3>
               <p className="text-gray-300 text-xs fira-code leading-relaxed">
                 2nd Dan Black Belt Karate Instructor at Cairo Sports Club
               </p>
@@ -72,7 +72,7 @@ export function About() {
               <div className="w-10 h-10 rounded-lg glass flex items-center justify-center mb-4 border border-[#B026FF]/40">
                 <Users className="text-[#B026FF]" size={20} />
               </div>
-              <h4 className="text-white orbitron font-bold mb-1 text-sm">Govt. Instructor</h4>
+              <h3 className="text-white orbitron font-bold mb-1 text-sm">Govt. Instructor</h3>
               <p className="text-gray-300 text-xs fira-code leading-relaxed">
                 Youth & Sports Ministry Keynote Speaker; Trained 45+ Students
               </p>
@@ -82,7 +82,7 @@ export function About() {
               <div className="w-10 h-10 rounded-lg glass flex items-center justify-center mb-4 border border-[#FFFF00]/40">
                 <Brain className="text-[#FFFF00]" size={20} />
               </div>
-              <h4 className="text-white orbitron font-bold mb-1 text-sm">Languages & Status</h4>
+              <h3 className="text-white orbitron font-bold mb-1 text-sm">Languages & Status</h3>
               <p className="text-gray-300 text-xs fira-code leading-relaxed">
                 Arabic (Native), English (Fluent) • Military Postponed (Student)
               </p>

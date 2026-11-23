@@ -168,6 +168,7 @@ export function Contact() {
                   target="_blank"
                   rel="noopener"
                   referrerPolicy="strict-origin-when-cross-origin"
+                  aria-label="LinkedIn Profile"
                   whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(0, 245, 255, 0.5)' }}
                   className="w-12 h-12 glass-strong rounded-lg flex items-center justify-center border border-[#00F5FF]/40 transition-all"
                 >
@@ -177,6 +178,7 @@ export function Contact() {
                   href="https://github.com/JooSameh"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="GitHub Profile"
                   whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(57, 255, 20, 0.5)' }}
                   className="w-12 h-12 glass-strong rounded-lg flex items-center justify-center border border-[#39FF14]/40 transition-all"
                 >
@@ -283,9 +285,9 @@ export function Contact() {
                 <Button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full glass-strong border border-[#00F5FF]/40 text-[#00F5FF] hover:bg-[#00F5FF]/20 hover:neon-blue orbitron disabled:opacity-50"
+                  className="w-full bg-[#00F5FF] hover:bg-[#00d8e6] text-slate-950 font-bold border border-[#00F5FF] shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_28px_rgba(0,245,255,0.5)] orbitron disabled:opacity-50 transition-all"
                 >
-                  <Send size={16} className="mr-2" />
+                  <Send size={16} className="mr-2 text-slate-950" />
                   {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </motion.div>

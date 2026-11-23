@@ -438,6 +438,9 @@ export function Hero() {
                    <img
                      src={profileImage}
                      alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
+                     width={960}
+                     height={1280}
+                     {...{ fetchpriority: 'high' }}
                      draggable={false}
                      onContextMenu={(e) => e.preventDefault()}
                      onDragStart={(e) => e.preventDefault()}

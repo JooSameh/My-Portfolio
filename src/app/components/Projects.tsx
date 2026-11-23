@@ -7,7 +7,7 @@ export function Projects() {
     {
       title: "Arabic AI Chatbot & Voice Assistant - Qwen 2.5",
       description: "Built a custom Arabic language chatbot and voice assistant interface using Python and Gradio, powered by Qwen 2.5 LLM. Engineered a comprehensive Local Voice-Activated Assistant simulating the capabilities of advanced intelligent assistants, featuring speech recognition and speech synthesis capabilities, optimized for Arabic dialects with intelligent response generation and context awareness.",
-      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
+      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?crop=entropy&cs=tinysrgb&fit=max&w=650&fm=webp&q=80",
       tools: ["Python", "Gradio", "Qwen 2.5", "Ollama", "Whisper", "TTS", "Natural Language Processing"],
       outcome: "Successfully deployed AI-powered chatbot with 90% accuracy in Arabic language comprehension. Integrated advanced conversation flow and context retention mechanisms.",
       github: null,
@@ -17,7 +17,7 @@ export function Projects() {
     {
       title: "Academic Web Portal Vulnerability Assessment",
       description: "Conducted comprehensive security audits on academic web portals to identify and document critical vulnerabilities. Performed systematic penetration testing including SQL injection, XSS, and authentication bypass assessments.",
-      image: "https://images.unsplash.com/photo-1483817101829-339b08e8d83f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
+      image: "https://images.unsplash.com/photo-1483817101829-339b08e8d83f?crop=entropy&cs=tinysrgb&fit=max&w=650&fm=webp&q=80",
       tools: ["Nmap", "Metasploit", "Burp Suite", "OWASP Testing", "Vulnerability Research"],
       outcome: "Identified and reported multiple critical vulnerabilities. Created detailed remediation reports with step-by-step security improvements, leading to enhanced portal security.",
       github: null,
@@ -27,7 +27,7 @@ export function Projects() {
     {
       title: "Automated Network Recon & Vulnerability Audit Engine",
       description: "Engineered an automated network auditing and reconnaissance engine using Python and Scapy. Implemented automated packet sniffing, TCP/UDP port mapping, service banner enumeration, and CVE correlation to accelerate penetration testing and host discovery.",
-      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080",
+      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?crop=entropy&cs=tinysrgb&fit=max&w=650&fm=webp&q=80",
       tools: ["Python", "Scapy", "Nmap Automation", "Socket Programming", "Vulnerability Assessment", "Kali Linux"],
       outcome: "Streamlined attack surface mapping with automated reporting. Achieved rapid protocol inspection and CVE severity matching across subnets.",
       github: "https://github.com/JooSameh",
@@ -78,6 +78,8 @@ export function Projects() {
                   <ImageWithFallback
                     src={project.image}
                     alt={project.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#00F5FF]/20 to-transparent"></div>

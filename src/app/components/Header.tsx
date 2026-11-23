@@ -88,6 +88,7 @@ export function Header() {
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Send Email"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -99,6 +100,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener"
                 referrerPolicy="strict-origin-when-cross-origin"
+                aria-label="LinkedIn Profile"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -109,6 +111,7 @@ export function Header() {
                 href="https://github.com/JooSameh" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="GitHub Profile"
                 className="w-10 h-10 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -121,6 +124,8 @@ export function Header() {
           {/* Cyberpunk Mobile Menu Button */}
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMenuOpen}
             className="md:hidden w-10 h-10 glass rounded-lg flex items-center justify-center"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -181,6 +186,7 @@ export function Header() {
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Send Email"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >
@@ -191,6 +197,7 @@ export function Header() {
                 target="_blank"
                 rel="noopener"
                 referrerPolicy="strict-origin-when-cross-origin"
+                aria-label="LinkedIn Profile"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >
@@ -200,6 +207,7 @@ export function Header() {
                 href="https://github.com/JooSameh" 
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="GitHub Profile"
                 className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                 whileHover={{ scale: 1.1 }}
               >
