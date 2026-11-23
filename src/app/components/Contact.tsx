@@ -36,20 +36,21 @@ export function Contact() {
 
     setIsSubmitting(true);
 
-    // 2. Use FormData instead of JSON to ensure Web3Forms processes the payload correctly
-    const payload = new FormData(e.currentTarget);
-    payload.append("access_key", "7fd90b3b-ce5a-41ff-b216-84becdb77acd");
-
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: payload
+      // 2. Submit JSON to server-side /api/contact proxy (keeps WEB3FORMS_ACCESS_KEY strictly server-side)
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
-      if (data.success) {
-        toast.success('Message sent successfully! I\'ll get back to you soon.');
+      if (response.ok && data.success) {
+        toast.success("Message sent successfully! I'll get back to you soon.");
         setFormData({
           name: '',
           email: '',
@@ -58,7 +59,7 @@ export function Contact() {
           botField: ''
         });
       } else {
-         throw new Error(data.message || 'Failed to send message.');
+        throw new Error(data.error || data.message || 'Failed to send message.');
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred while sending the message. Please try again.');

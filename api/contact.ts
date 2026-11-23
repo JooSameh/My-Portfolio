@@ -36,10 +36,59 @@ const MAX_PAYLOAD_BYTES = 10 * 1024 // 10 KB limit
 const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute window
 const MAX_REQUESTS_PER_WINDOW = 3 // Max 3 messages per minute per IP
 
-// 3. Sliding Window In-Memory Rate Limiter
+// 3. Sanitizers (HTML Tag Stripping & CRLF Email Header Injection Prevention)
+const stripCRLF = (val: string) => val.replace(/[\r\n]+/g, ' ').trim()
+const stripHTML = (val: string) => val.replace(/<[^>]*>?/gm, '').trim()
+
+// 4. Strict Origin / Referer Allowlist (blocks cross-origin & wildcard subdomain API abuse)
+const ALLOWED_ORIGINS = new Set([
+  'https://youssef-elgendy.vercel.app',
+  'http://localhost:3000',
+])
+
+function isOriginAllowed(origin: string | undefined, referer: string | undefined): boolean {
+  const isExactOriginAllowed = (rawUrl: string | undefined): boolean => {
+    if (!rawUrl) return false
+    try {
+      const parsed = new URL(rawUrl)
+      return ALLOWED_ORIGINS.has(parsed.origin)
+    } catch {
+      return false
+    }
+  }
+
+  return isExactOriginAllowed(origin) || isExactOriginAllowed(referer)
+}
+
+// 5. Rate Limiter (Persistent Upstash Redis REST API when configured, with In-Memory Sliding Window fallback)
 const ipRequestHistory = new Map<string, number[]>()
 
-export function isRateLimited(clientIp: string): boolean {
+export async function isRateLimited(clientIp: string): Promise<boolean> {
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN
+
+  if (upstashUrl && upstashToken) {
+    try {
+      const key = `rl:contact:${clientIp}`
+      const incrRes = await fetch(`${upstashUrl}/incr/${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${upstashToken}` },
+      })
+      if (incrRes.ok) {
+        const { result: count } = (await incrRes.json()) as { result: number }
+        if (count === 1) {
+          await fetch(`${upstashUrl}/expire/${encodeURIComponent(key)}/60`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${upstashToken}` },
+          })
+        }
+        return count > MAX_REQUESTS_PER_WINDOW
+      }
+    } catch {
+      // Fallback safely to in-memory limiter if Upstash is temporarily unreachable
+    }
+  }
+
   const now = Date.now()
   const history = ipRequestHistory.get(clientIp) || []
   const recentRequests = history.filter((time) => now - time < RATE_LIMIT_WINDOW_MS)
@@ -51,7 +100,6 @@ export function isRateLimited(clientIp: string): boolean {
   recentRequests.push(now)
   ipRequestHistory.set(clientIp, recentRequests)
 
-  // Periodic cleanup if map grows large
   if (ipRequestHistory.size > 2000) {
     for (const [ip, timestamps] of ipRequestHistory.entries()) {
       if (timestamps.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) {
@@ -63,7 +111,7 @@ export function isRateLimited(clientIp: string): boolean {
   return false
 }
 
-// 4. Hono App Configuration
+// 6. Hono App Configuration
 const app = new Hono()
 
 app.use('*', async (c: any, next: any) => {
@@ -71,14 +119,21 @@ app.use('*', async (c: any, next: any) => {
   c.header('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
   c.header('X-Frame-Options', 'SAMEORIGIN')
   c.header('X-Content-Type-Options', 'nosniff')
-  c.header('X-XSS-Protection', '1; mode=block')
+  c.header('X-XSS-Protection', '0')
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
   c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), display-capture=()')
 })
 
 // Handler for contact submission
 const handleContact = async (c: any) => {
-  // 0. Strict Content-Type Enforcement (Anti-CSRF simple request protection)
+  // A. Strict Origin / Referer Validation (blocks cross-origin API abuse)
+  const origin = c.req.header('origin')
+  const referer = c.req.header('referer')
+  if (!isOriginAllowed(origin, referer)) {
+    return c.json({ success: false, error: 'Forbidden origin.' }, 403)
+  }
+
+  // B. Strict Content-Type Enforcement (Anti-CSRF simple request protection)
   const contentType = c.req.header('content-type') || ''
   if (!contentType.toLowerCase().includes('application/json')) {
     return c.json(
@@ -87,7 +142,7 @@ const handleContact = async (c: any) => {
     )
   }
 
-  // A. Check Content-Length for Payload Size Limit
+  // C. Check Content-Length for Payload Size Limit
   const contentLength = c.req.header('content-length')
   if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
     return c.json(
@@ -96,14 +151,14 @@ const handleContact = async (c: any) => {
     )
   }
 
-  // B. Client IP Identification & Rate Limiting
+  // D. Trusted Edge Client IP Identification & Rate Limiting
   const clientIp =
-    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
     c.req.header('x-real-ip') ||
+    c.req.header('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
     c.req.header('cf-connecting-ip') ||
     '127.0.0.1'
 
-  if (isRateLimited(clientIp)) {
+  if (await isRateLimited(clientIp)) {
     return c.json(
       {
         success: false,
@@ -113,7 +168,7 @@ const handleContact = async (c: any) => {
     )
   }
 
-  // C. Read & Validate Raw Body Size
+  // E. Read & Validate Raw Body Size
   let rawBodyText = ''
   try {
     rawBodyText = await c.req.text()
@@ -128,7 +183,7 @@ const handleContact = async (c: any) => {
     )
   }
 
-  // D. Parse JSON Body
+  // F. Parse JSON Body
   let parsedJson: unknown
   try {
     parsedJson = JSON.parse(rawBodyText || '{}')
@@ -136,7 +191,7 @@ const handleContact = async (c: any) => {
     return c.json({ success: false, error: 'Malformed JSON payload.' }, 400)
   }
 
-  // E. Strict Zod Schema Validation
+  // G. Strict Zod Schema Validation
   const validationResult = ContactSchema.safeParse(parsedJson)
   if (!validationResult.success) {
     const errorDetails = (validationResult.error.issues || []).map((e) => ({
@@ -155,30 +210,64 @@ const handleContact = async (c: any) => {
 
   const { name, email, subject, message, botField } = validationResult.data
 
-  // F. Honeypot Bot Detection
+  // H. Honeypot Bot Detection
   if (botField && botField.trim().length > 0) {
     console.warn(`[Security Alert] Bot submission trapped by honeypot from IP: ${clientIp}`)
-    // Silently return success so the bot is unaware it was dropped
     return c.json({
       success: true,
       message: 'Message received safely.',
     })
   }
 
-  // G. Successful Processing Log
-  console.log('[Contact Submission Processed Safely]:', {
-    name,
-    email,
-    subject,
-    messageLength: message.length,
-    senderIp: clientIp,
-    timestamp: new Date().toISOString(),
-  })
+  // I. HTML & CRLF Injection Sanitization
+  const safeName = stripCRLF(stripHTML(name))
+  const safeEmail = stripCRLF(email)
+  const safeSubject = stripCRLF(stripHTML(subject))
+  const safeMessage = stripHTML(message)
 
-  return c.json({
-    success: true,
-    message: 'Message received safely.',
-  })
+  // J. Server-Side Web3Forms Forwarding via Environment Variable (never hardcoded or exposed to client)
+  const web3FormsKey = process.env.WEB3FORMS_ACCESS_KEY
+  if (!web3FormsKey) {
+    return c.json(
+      {
+        success: false,
+        error: 'Mail service is not configured on the server. Please contact via LinkedIn or Gmail.',
+      },
+      503
+    )
+  }
+
+  try {
+    const upstreamRes = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        access_key: web3FormsKey,
+        name: safeName,
+        email: safeEmail,
+        subject: safeSubject,
+        message: safeMessage,
+      }),
+    })
+
+    const upstreamData = (await upstreamRes.json()) as { success?: boolean; message?: string }
+    if (!upstreamRes.ok || !upstreamData.success) {
+      return c.json(
+        { success: false, error: upstreamData.message || 'Upstream mail delivery failed.' },
+        502
+      )
+    }
+
+    return c.json({
+      success: true,
+      message: 'Message received safely.',
+    })
+  } catch {
+    return c.json({ success: false, error: 'Failed to deliver message.' }, 502)
+  }
 }
 
 // Support POST on all routing variations Vercel might pass
