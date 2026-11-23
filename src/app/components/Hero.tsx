@@ -1,11 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { 
   Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database, Binary, HardDrive
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
+// Precomputed cyberpunk decorative datasets (avoids allocation & Math.random() on render)
+const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
+
+const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => ({
+  left: `${i * 4 + 1}%`,
+  fontSize: `${(i % 3) * 3 + 9}px`,
+  color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8',
+  duration: (i % 4) + 3.5,
+  delay: (i % 5) * 0.7,
+  chars: Array.from({ length: 18 }, (_, j) => ({
+    char: i % 2 === 0
+      ? MATRIX_CHARS[(i + j) % MATRIX_CHARS.length]
+      : BINARY_CHARS[(i * 2 + j) % BINARY_CHARS.length],
+    opacity: 1 - j * 0.05,
+  })),
+}));
+
+const FLOATING_SHAPES = [
+  { left: '12%', top: '18%', dx: 8, duration: 9, delay: 0.2, rounded: true },
+  { left: '84%', top: '22%', dx: -7, duration: 11, delay: 0.8, rounded: false },
+  { left: '26%', top: '76%', dx: 6, duration: 10, delay: 1.1, rounded: true },
+  { left: '72%', top: '68%', dx: -9, duration: 12, delay: 0.4, rounded: false },
+  { left: '48%', top: '14%', dx: 5, duration: 8.5, delay: 1.5, rounded: true },
+  { left: '62%', top: '84%', dx: -6, duration: 10.5, delay: 0.6, rounded: false },
+  { left: '8%', top: '54%', dx: 7, duration: 13, delay: 1.3, rounded: true },
+  { left: '91%', top: '48%', dx: -8, duration: 9.5, delay: 0.9, rounded: false },
+];
+
 export function Hero() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [ambientReady, setAmbientReady] = useState(false);
+  const cursorGlowRef = useRef<HTMLDivElement | null>(null);
   const [profileImage] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('custom_profile_image');
@@ -22,14 +52,50 @@ export function Hero() {
     }
   });
 
+  // Defer ambient decorative animations & cursor listener until browser is idle after initial paint
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    if (typeof win.requestIdleCallback === 'function') {
+      const id = win.requestIdleCallback(() => setAmbientReady(true), { timeout: 250 });
+      return () => win.cancelIdleCallback?.(id);
+    }
+
+    const timer = window.setTimeout(() => setAmbientReady(true), 120);
+    return () => window.clearTimeout(timer);
   }, []);
+
+  // Zero-re-render GPU-composited cursor glow listener (attached only after idle)
+  useEffect(() => {
+    if (!ambientReady) return;
+    let rafId = 0;
+    let lastX = 0;
+    let lastY = 0;
+
+    const updateGlow = () => {
+      rafId = 0;
+      if (cursorGlowRef.current) {
+        cursorGlowRef.current.style.transform = `translate3d(${lastX - 192}px, ${lastY - 192}px, 0)`;
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(updateGlow);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, [ambientReady]);
 
   const scrollToAbout = () => {
     const element = document.getElementById('about');
@@ -37,10 +103,6 @@ export function Hero() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  // Cyberpunk matrix & binary decorative symbols
-  const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-  const binaryChars = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -52,119 +114,122 @@ export function Hero() {
         {/* Animated cyber grid */}
         <div className="absolute inset-0 cyber-grid opacity-20" />
         
-        {/* Interactive cursor glow */}
+        {/* Interactive cursor glow (GPU-composited via ref + rAF, zero React re-renders) */}
         <div 
-          className="absolute w-96 h-96 rounded-full pointer-events-none transition-all duration-300 ease-out"
+          ref={cursorGlowRef}
+          className="absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none"
           style={{
-            left: mousePosition.x - 192,
-            top: mousePosition.y - 192,
+            transform: 'translate3d(-192px, -192px, 0)',
+            willChange: 'transform',
             background: `radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)`,
           }}
         />
 
-        {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
-        <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
-          {Array.from({ length: 25 }).map((_, i) => (
+        {/* Ambient Matrix Rain, Floating Shapes & Glowing Orbs (deferred until idle after initial paint) */}
+        {ambientReady && (
+          <>
+            {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
+            <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
+              {MATRIX_COLUMNS.map((col, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute select-none fira-code pointer-events-none"
+                  style={{
+                    left: col.left,
+                    fontSize: col.fontSize,
+                    color: col.color,
+                  }}
+                  animate={{
+                    y: ['-10vh', '110vh'],
+                  }}
+                  transition={{
+                    duration: col.duration,
+                    repeat: Infinity,
+                    delay: col.delay,
+                    ease: "linear"
+                  }}
+                >
+                  {col.chars.map((item, j) => (
+                    <div key={j} style={{ opacity: item.opacity }}>
+                      {item.char}
+                    </div>
+                  ))}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Floating geometric shapes */}
+            {FLOATING_SHAPES.map((shape, i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                style={{
+                  left: shape.left,
+                  top: shape.top,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  x: [0, shape.dx, 0],
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: shape.duration,
+                  repeat: Infinity,
+                  delay: shape.delay,
+                  ease: "easeInOut"
+                }}
+              >
+                <div 
+                  className={`w-4 h-4 ${
+                    i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
+                    i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
+                    'bg-[#B026FF]/20 border-[#B026FF]/40'
+                  } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+                />
+              </motion.div>
+            ))}
+
+            {/* Large glowing orbs */}
             <motion.div
-              key={i}
-              className="absolute select-none fira-code pointer-events-none"
-              style={{
-                left: `${(i * 4) + 1}%`,
-                fontSize: `${(i % 3) * 3 + 9}px`,
-                color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8'
+              className="absolute w-[500px] h-[500px] rounded-full opacity-30"
+              style={{ 
+                left: '5%', 
+                top: '10%',
+                background: 'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
+                filter: 'blur(40px)'
               }}
               animate={{
-                y: ['-10vh', '110vh'],
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.4, 0.2],
               }}
               transition={{
-                duration: (i % 4) + 3.5,
+                duration: 6,
                 repeat: Infinity,
-                delay: (i % 5) * 0.7,
-                ease: "linear"
+                ease: "easeInOut"
               }}
-            >
-              {Array.from({ length: 18 }).map((_, j) => (
-                <div key={j} style={{ opacity: 1 - (j * 0.05) }}>
-                  {i % 2 === 0 
-                    ? matrixChars[(i + j) % matrixChars.length]
-                    : binaryChars[(i * 2 + j) % binaryChars.length]
-                  }
-                </div>
-              ))}
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Floating geometric shapes */}
-        {Array.from({ length: 8 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              x: [0, Math.random() * 20 - 10, 0],
-              rotate: [0, 360],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: Math.random() * 6 + 8,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: "easeInOut"
-            }}
-          >
-            <div 
-              className={`w-4 h-4 ${
-                i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
-                i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
-                'bg-[#B026FF]/20 border-[#B026FF]/40'
-              } border ${Math.random() > 0.5 ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
             />
-          </motion.div>
-        ))}
-
-        {/* Large glowing orbs */}
-        <motion.div
-          className="absolute w-[500px] h-[500px] rounded-full opacity-30"
-          style={{ 
-            left: '5%', 
-            top: '10%',
-            background: 'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
-            filter: 'blur(40px)'
-          }}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute w-[400px] h-[400px] rounded-full opacity-20"
-          style={{ 
-            right: '5%', 
-            bottom: '10%',
-            background: 'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
-            filter: 'blur(30px)'
-          }}
-          animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.15, 0.3, 0.15],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
-          }}
-        />
+            <motion.div
+              className="absolute w-[400px] h-[400px] rounded-full opacity-20"
+              style={{ 
+                right: '5%', 
+                bottom: '10%',
+                background: 'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
+                filter: 'blur(30px)'
+              }}
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.15, 0.3, 0.15],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1
+              }}
+            />
+          </>
+        )}
       </div>
 
       {/* Cyber Defense Status HUD Node */}
@@ -198,30 +263,18 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-center lg:text-left space-y-8"
-          >
+          <div className="text-center lg:text-left space-y-8">
             {/* Security Badge */}
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full"
-            >
+            <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full">
               <Shield size={16} className="text-[#39FF14]" />
               <span className="text-xs uppercase tracking-widest neon-text-green orbitron">
                 Cybersecurity Specialist & Technical Instructor
               </span>
-            </motion.div>
+            </div>
               
             {/* Main Title with Holographic Effect */}
             <div className="space-y-6">
-              <motion.h1 
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-7xl lg:text-9xl tracking-tight orbitron"
-              >
+              <h1 className="text-7xl lg:text-9xl tracking-tight orbitron">
                 <span 
                   className="block text-white"
                   style={{ textShadow: '0 0 24px rgba(0,245,255,0.35)' }}
@@ -233,13 +286,9 @@ export function Hero() {
                 >
                   EL-Gendy
                 </span>
-              </motion.h1>
+              </h1>
 
-              <motion.div
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-3"
-              >
+              <div className="space-y-3">
                 <h2 className="text-2xl lg:text-3xl text-[#E2E8F0]">
                   Cybersecurity Instructor & <span className="neon-text-blue">AI Developer</span>
                 </h2>
@@ -247,39 +296,30 @@ export function Hero() {
                   <Terminal size={20} className="text-[#00F5FF] pulse-neon" />
                   <span className="fira-code">Offensive Security & AI-Driven Solutions</span>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Enhanced Description */}
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass p-6 rounded-xl"
-            >
+            <div className="glass p-6 rounded-xl">
               <p className="text-lg text-[#E2E8F0] leading-relaxed">
                 Ministry of Youth & Sports certified instructor training 45+ students in cybersecurity fundamentals. 
                 Specializing in <span className="neon-text-blue">penetration testing</span>, 
                 <span className="neon-text-green"> AI development</span>, and 
                 offensive security research. Keynote speaker combining technical expertise with leadership excellence.
               </p>
-            </motion.div>
+            </div>
 
             {/* Animated Stats */}
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              className="grid grid-cols-3 gap-6"
-            >
+            <div className="grid grid-cols-3 gap-6">
               {[
                 { value: '45+', label: 'Students Trained', color: '#00F5FF' },
                 { value: '36+', label: 'Training Hours', color: '#39FF14' },
                 { value: '2nd Dan', label: 'Karate Black Belt', color: '#B026FF' }
               ].map((stat, index) => (
-                <motion.div
+                <div
                   key={index}
-                  className="glass-strong p-4 rounded-xl text-center"
+                  className="glass-strong p-4 rounded-xl text-center transition-transform duration-200 hover:scale-105"
                   style={{ boxShadow: `0 0 28px ${stat.color}25` }}
-                  whileHover={{ scale: 1.05 }}
                 >
                   <div className="text-3xl mb-2 orbitron" style={{ color: stat.color }}>
                     {stat.value}
@@ -287,9 +327,9 @@ export function Hero() {
                   <div className="text-xs text-[#94A3B8] uppercase tracking-wide">
                     {stat.label}
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA Buttons */}
             <motion.div
@@ -358,14 +398,10 @@ export function Hero() {
                 </motion.div>
               ))}
             </motion.div>
-          </motion.div>
+          </div>
 
           {/* Right Content - 3D Profile Display */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex justify-center lg:justify-end perspective-1000"
-          >
+          <div className="flex justify-center lg:justify-end perspective-1000">
             <div className="relative preserve-3d">
               {/* Holographic Frame */}
               <motion.div
@@ -408,8 +444,8 @@ export function Hero() {
                    <img
                      src={profileImage}
                      alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
-                     width={960}
-                     height={1280}
+                     width={574}
+                     height={765}
                      {...{ fetchpriority: 'high' }}
                      draggable={false}
                      onContextMenu={(e) => e.preventDefault()}
@@ -471,7 +507,7 @@ export function Hero() {
                 ))}
               </motion.div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 

@@ -21,14 +21,54 @@ const FooterFallback = () => <div className="min-h-[180px]" aria-hidden="true" /
 
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [belowFoldReady, setBelowFoldReady] = useState(false);
+
+  // Defer below-the-fold lazy chunk evaluation & non-critical scroll listener until idle or first interaction
+  useEffect(() => {
+    let activated = false;
+    const activate = () => {
+      if (activated) return;
+      activated = true;
+      setBelowFoldReady(true);
+    };
+
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    let idleId: number | undefined;
+    let timerId: number | undefined;
+
+    if (typeof win.requestIdleCallback === 'function') {
+      idleId = win.requestIdleCallback(activate, { timeout: 250 });
+    } else {
+      timerId = window.setTimeout(activate, 150);
+    }
+
+    window.addEventListener('scroll', activate, { passive: true, once: true });
+    window.addEventListener('pointerdown', activate, { passive: true, once: true });
+
+    return () => {
+      if (idleId !== undefined) win.cancelIdleCallback?.(idleId);
+      if (timerId !== undefined) window.clearTimeout(timerId);
+      window.removeEventListener('scroll', activate);
+      window.removeEventListener('pointerdown', activate);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!belowFoldReady) return;
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [belowFoldReady]);
 
   useEffect(() => {
     // Ensure any lingering lock class is cleared
     document.documentElement.classList.remove('cyber-shield-locked');
-
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
-    };
 
     // 1. Prevent Right-Click on the entire website except within form inputs
     const handleContextMenu = (e: MouseEvent) => {
@@ -158,7 +198,6 @@ export default function App() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('contextmenu', handleContextMenu, true);
     document.addEventListener('copy', handleCopy, true);
     document.addEventListener('cut', handleCut, true);
@@ -169,7 +208,6 @@ export default function App() {
     window.addEventListener('keyup', handleKeyUp, true);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('contextmenu', handleContextMenu, true);
       document.removeEventListener('copy', handleCopy, true);
       document.removeEventListener('cut', handleCut, true);
@@ -193,44 +231,76 @@ export default function App() {
       <main>
         <Hero />
         <div id="about">
-          <Suspense fallback={<SectionFallback />}>
-            <About />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <About />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
         <div id="education">
-          <Suspense fallback={<SectionFallback />}>
-            <Education />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <Education />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
         <div id="experience">
-          <Suspense fallback={<SectionFallback />}>
-            <Experience />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <Experience />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
         <div id="projects">
-          <Suspense fallback={<SectionFallback />}>
-            <Projects />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <Projects />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
         <div id="certifications">
-          <Suspense fallback={<SectionFallback />}>
-            <Certifications />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <Certifications />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
         <div id="skills">
-          <Suspense fallback={<SectionFallback />}>
-            <Skills />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <Skills />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
         <div id="contact">
-          <Suspense fallback={<SectionFallback />}>
-            <Contact />
-          </Suspense>
+          {belowFoldReady ? (
+            <Suspense fallback={<SectionFallback />}>
+              <Contact />
+            </Suspense>
+          ) : (
+            <SectionFallback />
+          )}
         </div>
       </main>
-      <Suspense fallback={<FooterFallback />}>
-        <Footer />
-      </Suspense>
+      {belowFoldReady ? (
+        <Suspense fallback={<FooterFallback />}>
+          <Footer />
+        </Suspense>
+      ) : (
+        <FooterFallback />
+      )}
       
       {/* Scroll to Top Button */}
       <AnimatePresence>
@@ -250,21 +320,23 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <Suspense fallback={null}>
-        <Toaster 
-          theme="dark"
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(0, 245, 255, 0.3)',
-              color: '#E2E8F0',
-              borderRadius: '12px',
-            },
-          }}
-        />
-      </Suspense>
+      {belowFoldReady && (
+        <Suspense fallback={null}>
+          <Toaster 
+            theme="dark"
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(0, 245, 255, 0.3)',
+                color: '#E2E8F0',
+                borderRadius: '12px',
+              },
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
