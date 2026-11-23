@@ -9,12 +9,16 @@ export function Hero() {
   const [profileImage] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('custom_profile_image');
-      if (saved && (/^\/[a-zA-Z0-9._/-]+$/.test(saved) || /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(saved))) {
+      if (
+        saved &&
+        saved !== '/profile.png' &&
+        (/^\/[a-zA-Z0-9._/-]+$/.test(saved) || /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(saved))
+      ) {
         return saved;
       }
-      return '/profile.png';
+      return '/profile.webp';
     } catch {
-      return '/profile.png';
+      return '/profile.webp';
     }
   });
 
