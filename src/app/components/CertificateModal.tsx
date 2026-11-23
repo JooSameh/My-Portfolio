@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Award, ExternalLink, ShieldCheck, CheckCircle2, FileImage } from 'lucide-react';
+import { X, Award, ShieldCheck, CheckCircle2, FileImage } from 'lucide-react';
 
 export interface CertificateData {
   id: string;
@@ -50,7 +51,7 @@ export function CertificateModal({
 
   if (!isOpen || !certificate) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-y-auto">
         {/* Backdrop */}
@@ -219,6 +220,7 @@ export function CertificateModal({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

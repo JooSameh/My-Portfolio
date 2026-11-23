@@ -1,9 +1,9 @@
-import { Shield, Code, Network, Users, Award, Mic, Brain, Download } from 'lucide-react';
+import { Shield, Users, Award, Brain, Download } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export function About() {
   return (
-    <section id="about" className="py-20 relative overflow-hidden">
+    <section className="py-20 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1C] via-[#0D1421] to-[#0A0F1C]" />
       <div className="absolute inset-0 cyber-grid opacity-10" />

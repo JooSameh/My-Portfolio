@@ -1,18 +1,23 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { About } from './components/About';
-import { Education } from './components/Education';
-import { Experience } from './components/Experience';
-import { Projects } from './components/Projects';
-import { Certifications } from './components/Certifications';
-import { Skills } from './components/Skills';
-import { Contact } from './components/Contact';
-import { Footer } from './components/Footer';
+import { Preloader } from './components/Preloader';
 import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
-import { Toaster } from './components/ui/sonner';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
+
+const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
+const Education = lazy(() => import('./components/Education').then((m) => ({ default: m.Education })));
+const Experience = lazy(() => import('./components/Experience').then((m) => ({ default: m.Experience })));
+const Projects = lazy(() => import('./components/Projects').then((m) => ({ default: m.Projects })));
+const Certifications = lazy(() => import('./components/Certifications').then((m) => ({ default: m.Certifications })));
+const Skills = lazy(() => import('./components/Skills').then((m) => ({ default: m.Skills })));
+const Contact = lazy(() => import('./components/Contact').then((m) => ({ default: m.Contact })));
+const Footer = lazy(() => import('./components/Footer').then((m) => ({ default: m.Footer })));
+const Toaster = lazy(() => import('./components/ui/sonner').then((m) => ({ default: m.Toaster })));
+
+const SectionFallback = () => <div className="min-h-[800px]" aria-hidden="true" />;
+const FooterFallback = () => <div className="min-h-[180px]" aria-hidden="true" />;
 
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -182,19 +187,50 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
+      <Preloader />
       <ScreenShieldOverlay />
       <Header />
       <main>
         <Hero />
-        <About />
-        <Education />
-        <Experience />
-        <Projects />
-        <Certifications />
-        <Skills />
-        <Contact />
+        <div id="about">
+          <Suspense fallback={<SectionFallback />}>
+            <About />
+          </Suspense>
+        </div>
+        <div id="education">
+          <Suspense fallback={<SectionFallback />}>
+            <Education />
+          </Suspense>
+        </div>
+        <div id="experience">
+          <Suspense fallback={<SectionFallback />}>
+            <Experience />
+          </Suspense>
+        </div>
+        <div id="projects">
+          <Suspense fallback={<SectionFallback />}>
+            <Projects />
+          </Suspense>
+        </div>
+        <div id="certifications">
+          <Suspense fallback={<SectionFallback />}>
+            <Certifications />
+          </Suspense>
+        </div>
+        <div id="skills">
+          <Suspense fallback={<SectionFallback />}>
+            <Skills />
+          </Suspense>
+        </div>
+        <div id="contact">
+          <Suspense fallback={<SectionFallback />}>
+            <Contact />
+          </Suspense>
+        </div>
       </main>
-      <Footer />
+      <Suspense fallback={<FooterFallback />}>
+        <Footer />
+      </Suspense>
       
       {/* Scroll to Top Button */}
       <AnimatePresence>
@@ -214,19 +250,21 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <Toaster 
-        theme="dark"
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0, 245, 255, 0.3)',
-            color: '#E2E8F0',
-            borderRadius: '12px',
-          },
-        }}
-      />
+      <Suspense fallback={null}>
+        <Toaster 
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(0, 245, 255, 0.3)',
+              color: '#E2E8F0',
+              borderRadius: '12px',
+            },
+          }}
+        />
+      </Suspense>
     </div>
   );
 }

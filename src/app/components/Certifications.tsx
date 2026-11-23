@@ -223,7 +223,7 @@ export function Certifications() {
   } : null;
 
   return (
-    <section id="certifications" className="py-20 relative overflow-hidden">
+    <section className="py-20 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1C] via-[#0D1421] to-[#0A0F1C]" />
       <div className="absolute inset-0 cyber-grid opacity-10" />

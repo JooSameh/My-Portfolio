@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button } from './ui/button';
 import { 
-  ArrowDown, Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Wifi, Database, Binary, HardDrive, Sparkles
+  Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database, Binary, HardDrive
 } from 'lucide-react';
 import { motion } from 'motion/react';
 

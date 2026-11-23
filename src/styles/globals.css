@@ -352,6 +352,18 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Skip offscreen layout & paint work for below-the-fold sections on initial load */
+#about,
+#education,
+#experience,
+#projects,
+#certifications,
+#skills,
+#contact {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
+}
+
 /* Universal Anti-Copy & Selection Protection (iOS, Android, Windows, Mac) */
 *,
 *::before,

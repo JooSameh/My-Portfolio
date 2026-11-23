@@ -1,4 +1,4 @@
-import { ExternalLink, Github, Shield, Network, Globe, Brain, Users } from 'lucide-react';
+import { ExternalLink, Github, Shield, Network, Brain } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { motion } from 'motion/react';
 
@@ -37,7 +37,7 @@ export function Projects() {
   ];
 
   return (
-    <section id="projects" className="py-20 relative overflow-hidden">
+    <section className="py-20 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F1C] via-[#0D1421] to-[#0A0F1C]" />
       <div className="absolute inset-0 cyber-grid opacity-10" />
