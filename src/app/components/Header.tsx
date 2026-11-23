@@ -28,19 +28,11 @@ export function Header() {
             whileHover={{ scale: 1.05 }}
           >
             <div className="relative">
-              <motion.div
-                className="w-10 h-10 glass rounded-lg flex items-center justify-center"
-                animate={{
-                  boxShadow: [
-                    '0 0 20px rgba(0, 245, 255, 0.3)',
-                    '0 0 30px rgba(57, 255, 20, 0.3)',
-                    '0 0 20px rgba(0, 245, 255, 0.3)'
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
+              <div
+                className="w-10 h-10 glass rounded-lg flex items-center justify-center shadow-[0_0_24px_rgba(0,245,255,0.3)]"
               >
                 <Shield className="text-[#00F5FF]" size={20} />
-              </motion.div>
+              </div>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#39FF14] rounded-full animate-pulse" />
             </div>
             <div className="flex flex-col">

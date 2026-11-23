@@ -196,16 +196,14 @@ export function Hero() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
             className="text-center lg:text-left space-y-8"
           >
             {/* Security Badge */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
               className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full"
             >
               <Shield size={16} className="text-[#39FF14]" />
@@ -217,39 +215,26 @@ export function Hero() {
             {/* Main Title with Holographic Effect */}
             <div className="space-y-6">
               <motion.h1 
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
                 className="text-7xl lg:text-9xl tracking-tight orbitron"
               >
-                <motion.span 
+                <span 
                   className="block text-white"
-                  animate={{ 
-                    textShadow: [
-                      '0 0 20px rgba(255,255,255,0.5)',
-                      '0 0 40px rgba(0,245,255,0.3)',
-                      '0 0 20px rgba(255,255,255,0.5)'
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
+                  style={{ textShadow: '0 0 24px rgba(0,245,255,0.35)' }}
                 >
                   Youssef
-                </motion.span>
-                <motion.span 
+                </span>
+                <span 
                   className="block bg-gradient-to-r from-[#00F5FF] via-[#39FF14] to-[#00F5FF] bg-clip-text text-transparent holographic"
-                  animate={{ 
-                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
                 >
                   EL-Gendy
-                </motion.span>
+                </span>
               </motion.h1>
 
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
                 className="space-y-3"
               >
                 <h2 className="text-2xl lg:text-3xl text-[#E2E8F0]">
@@ -264,9 +249,8 @@ export function Hero() {
 
             {/* Enhanced Description */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
               className="glass p-6 rounded-xl"
             >
               <p className="text-lg text-[#E2E8F0] leading-relaxed">
@@ -279,9 +263,8 @@ export function Hero() {
 
             {/* Animated Stats */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
               className="grid grid-cols-3 gap-6"
             >
               {[
@@ -292,15 +275,8 @@ export function Hero() {
                 <motion.div
                   key={index}
                   className="glass-strong p-4 rounded-xl text-center"
+                  style={{ boxShadow: `0 0 28px ${stat.color}25` }}
                   whileHover={{ scale: 1.05 }}
-                  animate={{
-                    boxShadow: [
-                      `0 0 20px ${stat.color}20`,
-                      `0 0 40px ${stat.color}40`,
-                      `0 0 20px ${stat.color}20`
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
                 >
                   <div className="text-3xl mb-2 orbitron" style={{ color: stat.color }}>
                     {stat.value}
@@ -383,9 +359,8 @@ export function Hero() {
 
           {/* Right Content - 3D Profile Display */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
             className="flex justify-center lg:justify-end perspective-1000"
           >
             <div className="relative preserve-3d">
@@ -419,16 +394,8 @@ export function Hero() {
                 />
 
                 {/* Main Profile Container */}
-                <motion.div
-                  className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center"
-                  animate={{
-                    boxShadow: [
-                      '0 0 50px rgba(0, 245, 255, 0.3)',
-                      '0 0 100px rgba(57, 255, 20, 0.3)',
-                      '0 0 50px rgba(0, 245, 255, 0.3)'
-                    ]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
+                <div
+                  className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center shadow-[0_0_60px_rgba(0,245,255,0.3)]"
                 >
                    {/* Pure Cyber Glow Backgrounds */}
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,245,255,0.25)_0%,transparent_70%)] pointer-events-none" />
@@ -466,7 +433,7 @@ export function Hero() {
                      animate={{ y: ['-2rem', '24rem'] }}
                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                    />
-                </motion.div>
+                </div>
 
                 {/* Floating Tech Icons */}
                 {[
@@ -480,15 +447,13 @@ export function Hero() {
                   <motion.div
                     key={index}
                     className="absolute w-12 h-12 glass-strong rounded-xl flex items-center justify-center"
-                    style={item.position}
+                    style={{
+                      ...item.position,
+                      boxShadow: `0 0 25px ${item.color}40`,
+                    }}
                     animate={{
                       y: [0, -15, 0],
                       rotate: [0, 10, 0],
-                      boxShadow: [
-                        `0 0 20px ${item.color}40`,
-                        `0 0 40px ${item.color}60`,
-                        `0 0 20px ${item.color}40`
-                      ]
                     }}
                     transition={{
                       duration: 3 + index * 0.5,
