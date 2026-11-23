@@ -52,13 +52,18 @@ export function Header() {
               { id: 'skills', label: 'Skills' },
               { id: 'contact', label: 'Contact' }
             ].map((section) => (
-              <button
+              <motion.button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className="glass px-4 py-2 rounded-lg text-[#E2E8F0] hover:text-[#00F5FF] hover:scale-105 hover:shadow-[0_0_20px_rgba(0,245,255,0.3)] active:scale-95 transition-all duration-300 text-sm orbitron"
+                className="glass px-4 py-2 rounded-lg text-[#E2E8F0] hover:text-[#00F5FF] transition-all duration-300 text-sm orbitron"
+                whileHover={{ 
+                  scale: 1.05,
+                  boxShadow: '0 0 20px rgba(0, 245, 255, 0.3)'
+                }}
+                whileTap={{ scale: 0.95 }}
               >
                 {section.label}
-              </button>
+              </motion.button>
             ))}
           </nav>
 
@@ -158,6 +163,7 @@ export function Header() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                       whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
                     >
                       <div className="flex items-center gap-2">
                         <section.icon size={16} className="text-[#00F5FF]" />
@@ -176,6 +182,7 @@ export function Header() {
                     aria-label="Send Email"
                     className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                     whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.92 }}
                   >
                     <Mail size={18} className="text-[#00F5FF]" />
                   </motion.a>
@@ -187,6 +194,7 @@ export function Header() {
                     aria-label="LinkedIn Profile"
                     className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                     whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.92 }}
                   >
                     <Linkedin size={18} className="text-[#00F5FF]" />
                   </motion.a>
@@ -197,6 +205,7 @@ export function Header() {
                     aria-label="GitHub Profile"
                     className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
                     whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.92 }}
                   >
                     <Github size={18} className="text-[#00F5FF]" />
                   </motion.a>

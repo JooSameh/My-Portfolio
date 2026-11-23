@@ -34,7 +34,6 @@ const FLOATING_SHAPES = [
 ];
 
 export function Hero() {
-  const [ambientReady, setAmbientReady] = useState(false);
   const cursorGlowRef = useRef<HTMLDivElement | null>(null);
   const [profileImage] = useState<string>(() => {
     try {
@@ -52,25 +51,8 @@ export function Hero() {
     }
   });
 
-  // Defer ambient decorative animations & cursor listener until browser is idle after initial paint
+  // Immediate interactive cursor glow (GPU-composited via ref + rAF)
   useEffect(() => {
-    const win = window as Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-
-    if (typeof win.requestIdleCallback === 'function') {
-      const id = win.requestIdleCallback(() => setAmbientReady(true), { timeout: 250 });
-      return () => win.cancelIdleCallback?.(id);
-    }
-
-    const timer = window.setTimeout(() => setAmbientReady(true), 120);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  // Zero-re-render GPU-composited cursor glow listener (attached only after idle)
-  useEffect(() => {
-    if (!ambientReady) return;
     let rafId = 0;
     let lastX = 0;
     let lastY = 0;
@@ -95,7 +77,7 @@ export function Hero() {
       window.removeEventListener('mousemove', handleMouseMove);
       if (rafId) window.cancelAnimationFrame(rafId);
     };
-  }, [ambientReady]);
+  }, []);
 
   const scrollToAbout = () => {
     const element = document.getElementById('about');
@@ -125,111 +107,106 @@ export function Hero() {
           }}
         />
 
-        {/* Ambient Matrix Rain, Floating Shapes & Glowing Orbs (deferred until idle after initial paint) */}
-        {ambientReady && (
-          <>
-            {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
-            <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
-              {MATRIX_COLUMNS.map((col, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute select-none fira-code pointer-events-none"
-                  style={{
-                    left: col.left,
-                    fontSize: col.fontSize,
-                    color: col.color,
-                  }}
-                  animate={{
-                    y: ['-10vh', '110vh'],
-                  }}
-                  transition={{
-                    duration: col.duration,
-                    repeat: Infinity,
-                    delay: col.delay,
-                    ease: "linear"
-                  }}
-                >
-                  {col.chars.map((item, j) => (
-                    <div key={j} style={{ opacity: item.opacity }}>
-                      {item.char}
-                    </div>
-                  ))}
-                </motion.div>
+        {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
+        <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
+          {MATRIX_COLUMNS.map((col, i) => (
+            <motion.div
+              key={i}
+              className="absolute select-none fira-code pointer-events-none"
+              style={{
+                left: col.left,
+                fontSize: col.fontSize,
+                color: col.color,
+              }}
+              animate={{
+                y: ['-10vh', '110vh'],
+              }}
+              transition={{
+                duration: col.duration,
+                repeat: Infinity,
+                delay: col.delay,
+                ease: "linear"
+              }}
+            >
+              {col.chars.map((item, j) => (
+                <div key={j} style={{ opacity: item.opacity }}>
+                  {item.char}
+                </div>
               ))}
-            </div>
+            </motion.div>
+          ))}
+        </div>
 
-            {/* Floating geometric shapes */}
-            {FLOATING_SHAPES.map((shape, i) => (
-              <motion.div
-                key={i}
-                className="absolute"
-                style={{
-                  left: shape.left,
-                  top: shape.top,
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  x: [0, shape.dx, 0],
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: shape.duration,
-                  repeat: Infinity,
-                  delay: shape.delay,
-                  ease: "easeInOut"
-                }}
-              >
-                <div 
-                  className={`w-4 h-4 ${
-                    i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
-                    i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
-                    'bg-[#B026FF]/20 border-[#B026FF]/40'
-                  } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
-                />
-              </motion.div>
-            ))}
+        {/* Floating geometric shapes */}
+        {FLOATING_SHAPES.map((shape, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            style={{
+              left: shape.left,
+              top: shape.top,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              x: [0, shape.dx, 0],
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: shape.duration,
+              repeat: Infinity,
+              delay: shape.delay,
+              ease: "easeInOut"
+            }}
+          >
+            <div 
+              className={`w-4 h-4 ${
+                i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
+                i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
+                'bg-[#B026FF]/20 border-[#B026FF]/40'
+              } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+            />
+          </motion.div>
+        ))}
 
-            {/* Large glowing orbs */}
-            <motion.div
-              className="absolute w-[500px] h-[500px] rounded-full opacity-30"
-              style={{ 
-                left: '5%', 
-                top: '10%',
-                background: 'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
-                filter: 'blur(40px)'
-              }}
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.2, 0.4, 0.2],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            <motion.div
-              className="absolute w-[400px] h-[400px] rounded-full opacity-20"
-              style={{ 
-                right: '5%', 
-                bottom: '10%',
-                background: 'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
-                filter: 'blur(30px)'
-              }}
-              animate={{
-                scale: [1.2, 1, 1.2],
-                opacity: [0.15, 0.3, 0.15],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1
-              }}
-            />
-          </>
-        )}
+        {/* Large glowing orbs */}
+        <motion.div
+          className="absolute w-[500px] h-[500px] rounded-full opacity-30"
+          style={{ 
+            left: '5%', 
+            top: '10%',
+            background: 'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
+            filter: 'blur(40px)'
+          }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute w-[400px] h-[400px] rounded-full opacity-20"
+          style={{ 
+            right: '5%', 
+            bottom: '10%',
+            background: 'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
+            filter: 'blur(30px)'
+          }}
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.15, 0.3, 0.15],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
       </div>
 
       {/* Cyber Defense Status HUD Node */}
@@ -263,18 +240,31 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
-          <div className="text-center lg:text-left space-y-8">
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-center lg:text-left space-y-8"
+          >
             {/* Security Badge */}
-            <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full">
+            <motion.div
+              initial={false}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.03 }}
+              className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full"
+            >
               <Shield size={16} className="text-[#39FF14]" />
               <span className="text-xs uppercase tracking-widest neon-text-green orbitron">
                 Cybersecurity Specialist & Technical Instructor
               </span>
-            </div>
+            </motion.div>
               
             {/* Main Title with Holographic Effect */}
             <div className="space-y-6">
-              <h1 className="text-7xl lg:text-9xl tracking-tight orbitron">
+              <motion.h1 
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-7xl lg:text-9xl tracking-tight orbitron"
+              >
                 <span 
                   className="block text-white"
                   style={{ textShadow: '0 0 24px rgba(0,245,255,0.35)' }}
@@ -286,9 +276,13 @@ export function Hero() {
                 >
                   EL-Gendy
                 </span>
-              </h1>
+              </motion.h1>
 
-              <div className="space-y-3">
+              <motion.div
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-3"
+              >
                 <h2 className="text-2xl lg:text-3xl text-[#E2E8F0]">
                   Cybersecurity Instructor & <span className="neon-text-blue">AI Developer</span>
                 </h2>
@@ -296,30 +290,40 @@ export function Hero() {
                   <Terminal size={20} className="text-[#00F5FF] pulse-neon" />
                   <span className="fira-code">Offensive Security & AI-Driven Solutions</span>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* Enhanced Description */}
-            <div className="glass p-6 rounded-xl">
+            <motion.div
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass p-6 rounded-xl"
+            >
               <p className="text-lg text-[#E2E8F0] leading-relaxed">
                 Ministry of Youth & Sports certified instructor training 45+ students in cybersecurity fundamentals. 
                 Specializing in <span className="neon-text-blue">penetration testing</span>, 
                 <span className="neon-text-green"> AI development</span>, and 
                 offensive security research. Keynote speaker combining technical expertise with leadership excellence.
               </p>
-            </div>
+            </motion.div>
 
             {/* Animated Stats */}
-            <div className="grid grid-cols-3 gap-6">
+            <motion.div
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-3 gap-6"
+            >
               {[
                 { value: '45+', label: 'Students Trained', color: '#00F5FF' },
                 { value: '36+', label: 'Training Hours', color: '#39FF14' },
                 { value: '2nd Dan', label: 'Karate Black Belt', color: '#B026FF' }
               ].map((stat, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="glass-strong p-4 rounded-xl text-center transition-transform duration-200 hover:scale-105"
+                  className="glass-strong p-4 rounded-xl text-center"
                   style={{ boxShadow: `0 0 28px ${stat.color}25` }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <div className="text-3xl mb-2 orbitron" style={{ color: stat.color }}>
                     {stat.value}
@@ -327,9 +331,9 @@ export function Hero() {
                   <div className="text-xs text-[#94A3B8] uppercase tracking-wide">
                     {stat.label}
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {/* CTA Buttons */}
             <motion.div
@@ -398,10 +402,14 @@ export function Hero() {
                 </motion.div>
               ))}
             </motion.div>
-          </div>
+          </motion.div>
 
           {/* Right Content - 3D Profile Display */}
-          <div className="flex justify-center lg:justify-end perspective-1000">
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex justify-center lg:justify-end perspective-1000"
+          >
             <div className="relative preserve-3d">
               {/* Holographic Frame */}
               <motion.div
@@ -507,7 +515,7 @@ export function Hero() {
                 ))}
               </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
