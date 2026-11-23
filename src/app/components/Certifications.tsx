@@ -13,7 +13,7 @@ export function Certifications() {
       /^\/[a-zA-Z0-9._/-]+$/.test(src) ||
       /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(src);
     try {
-      for (let i = 1; i <= 16; i++) {
+      for (let i = 1; i <= 23; i++) {
         const id = `cert-${i}`;
         const val = localStorage.getItem(`cert_image_${id}`);
         if (val && isSafeImageSrc(val)) saved[id] = val;
@@ -64,6 +64,62 @@ export function Certifications() {
       category: "Cybersecurity",
       color: "#FF073A",
       defaultUrl: "/assets/aistudio/1795292621455_67dcdfec.png"
+    },
+    {
+      id: "cert-17",
+      title: "MINI MBA — Diploma of Proficiency (60 Hours, Excellent)",
+      issuer: "American Board of Professional Studies (ABPS), USA",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-1.jpg"
+    },
+    {
+      id: "cert-18",
+      title: "Mini Master of Business Administration (Comprehensive Program)",
+      issuer: "Egyptian Science House (بيت العلم المصري)",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-6.jpg"
+    },
+    {
+      id: "cert-19",
+      title: "Mini MBA — Financial Management Diploma",
+      issuer: "Egyptian Science House (بيت العلم المصري)",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-2.jpg"
+    },
+    {
+      id: "cert-20",
+      title: "Mini MBA — Project Management Diploma",
+      issuer: "Egyptian Science House (بيت العلم المصري)",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-3.jpg"
+    },
+    {
+      id: "cert-21",
+      title: "Mini MBA — Marketing & Sales Management Diploma",
+      issuer: "Egyptian Science House (بيت العلم المصري)",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-4.jpg"
+    },
+    {
+      id: "cert-22",
+      title: "Mini MBA — Entrepreneurship Diploma",
+      issuer: "Egyptian Science House (بيت العلم المصري)",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-5.jpg"
+    },
+    {
+      id: "cert-23",
+      title: "Mini MBA — Human Resources Management Diploma",
+      issuer: "Egyptian Science House (بيت العلم المصري)",
+      category: "Business & MBA",
+      color: "#FFD700",
+      defaultUrl: "/cert-mba-7.jpg"
     },
     {
       id: "cert-1",
