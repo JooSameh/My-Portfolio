@@ -1,6 +1,6 @@
 import { Mail, Github, Linkedin, Menu, X, Terminal, Shield, Cpu } from 'lucide-react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -134,86 +134,80 @@ export function Header() {
           </motion.button>
         </div>
 
-        {/* Enhanced Mobile Menu (mounted only when open to avoid unnecessary initial Motion DOM nodes) */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="md:hidden overflow-hidden"
-            >
-              <div className="mt-4 pt-4 border-t border-[#00F5FF]/20">
-                <nav className="grid grid-cols-2 gap-3 mb-4">
-                  {[
-                    { id: 'about', label: 'About', icon: Terminal },
-                    { id: 'education', label: 'Education', icon: Terminal },
-                    { id: 'experience', label: 'Experience', icon: Shield },
-                    { id: 'projects', label: 'Projects', icon: Cpu },
-                    { id: 'certifications', label: 'Certificates', icon: Shield },
-                    { id: 'skills', label: 'Skills', icon: Shield },
-                    { id: 'contact', label: 'Contact', icon: Mail }
-                  ].map((section, index) => (
-                    <motion.button
-                      key={section.id}
-                      onClick={() => scrollToSection(section.id)}
-                      className="glass p-3 rounded-lg text-left hover:neon-blue transition-all"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <section.icon size={16} className="text-[#00F5FF]" />
-                        <span className="text-sm text-[#E2E8F0] orbitron">{section.label}</span>
-                      </div>
-                    </motion.button>
-                  ))}
-                </nav>
-                
-                {/* Mobile Social Links */}
-                <div className="flex justify-center space-x-4 pb-2">
-                  <motion.a 
-                    href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Send Email"
-                    className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.92 }}
-                  >
-                    <Mail size={18} className="text-[#00F5FF]" />
-                  </motion.a>
-                  <motion.a 
-                    href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369" 
-                    target="_blank"
-                    rel="noopener"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    aria-label="LinkedIn Profile"
-                    className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.92 }}
-                  >
-                    <Linkedin size={18} className="text-[#00F5FF]" />
-                  </motion.a>
-                  <motion.a 
-                    href="https://github.com/JooSameh" 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="GitHub Profile"
-                    className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.92 }}
-                  >
-                    <Github size={18} className="text-[#00F5FF]" />
-                  </motion.a>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Enhanced Mobile Menu */}
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ 
+            opacity: isMenuOpen ? 1 : 0, 
+            height: isMenuOpen ? 'auto' : 0 
+          }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden overflow-hidden"
+        >
+          <div className="mt-4 pt-4 border-t border-[#00F5FF]/20">
+            <nav className="grid grid-cols-2 gap-3 mb-4">
+              {[
+                { id: 'about', label: 'About', icon: Terminal },
+                { id: 'education', label: 'Education', icon: Terminal },
+                { id: 'experience', label: 'Experience', icon: Shield },
+                { id: 'projects', label: 'Projects', icon: Cpu },
+                { id: 'certifications', label: 'Certificates', icon: Shield },
+                { id: 'skills', label: 'Skills', icon: Shield },
+                { id: 'contact', label: 'Contact', icon: Mail }
+              ].map((section, index) => (
+                <motion.button
+                  key={section.id}
+                  onClick={() => scrollToSection(section.id)}
+                  className="glass p-3 rounded-lg text-left hover:neon-blue transition-all"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="flex items-center gap-2">
+                    <section.icon size={16} className="text-[#00F5FF]" />
+                    <span className="text-sm text-[#E2E8F0] orbitron">{section.label}</span>
+                  </div>
+                </motion.button>
+              ))}
+            </nav>
+            
+            {/* Mobile Social Links */}
+            <div className="flex justify-center space-x-4 pb-2">
+              <motion.a 
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Send Email"
+                className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
+                whileHover={{ scale: 1.1 }}
+              >
+                <Mail size={18} className="text-[#00F5FF]" />
+              </motion.a>
+              <motion.a 
+                href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369" 
+                target="_blank"
+                rel="noopener"
+                referrerPolicy="strict-origin-when-cross-origin"
+                aria-label="LinkedIn Profile"
+                className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
+                whileHover={{ scale: 1.1 }}
+              >
+                <Linkedin size={18} className="text-[#00F5FF]" />
+              </motion.a>
+              <motion.a 
+                href="https://github.com/JooSameh" 
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub Profile"
+                className="w-12 h-12 glass rounded-lg flex items-center justify-center hover:neon-blue transition-all"
+                whileHover={{ scale: 1.1 }}
+              >
+                <Github size={18} className="text-[#00F5FF]" />
+              </motion.a>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </motion.header>
   );

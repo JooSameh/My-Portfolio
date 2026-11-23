@@ -1,40 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database, Binary, HardDrive
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
-// Precomputed cyberpunk decorative datasets (avoids allocation & Math.random() on render)
-const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
-
-const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => ({
-  left: `${i * 4 + 1}%`,
-  fontSize: `${(i % 3) * 3 + 9}px`,
-  color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8',
-  duration: (i % 4) + 3.5,
-  delay: (i % 5) * 0.7,
-  chars: Array.from({ length: 18 }, (_, j) => ({
-    char: i % 2 === 0
-      ? MATRIX_CHARS[(i + j) % MATRIX_CHARS.length]
-      : BINARY_CHARS[(i * 2 + j) % BINARY_CHARS.length],
-    opacity: 1 - j * 0.05,
-  })),
-}));
-
-const FLOATING_SHAPES = [
-  { left: '12%', top: '18%', dx: 8, duration: 9, delay: 0.2, rounded: true },
-  { left: '84%', top: '22%', dx: -7, duration: 11, delay: 0.8, rounded: false },
-  { left: '26%', top: '76%', dx: 6, duration: 10, delay: 1.1, rounded: true },
-  { left: '72%', top: '68%', dx: -9, duration: 12, delay: 0.4, rounded: false },
-  { left: '48%', top: '14%', dx: 5, duration: 8.5, delay: 1.5, rounded: true },
-  { left: '62%', top: '84%', dx: -6, duration: 10.5, delay: 0.6, rounded: false },
-  { left: '8%', top: '54%', dx: 7, duration: 13, delay: 1.3, rounded: true },
-  { left: '91%', top: '48%', dx: -8, duration: 9.5, delay: 0.9, rounded: false },
-];
-
 export function Hero() {
-  const cursorGlowRef = useRef<HTMLDivElement | null>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [profileImage] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('custom_profile_image');
@@ -51,32 +22,13 @@ export function Hero() {
     }
   });
 
-  // Immediate interactive cursor glow (GPU-composited via ref + rAF)
   useEffect(() => {
-    let rafId = 0;
-    let lastX = 0;
-    let lastY = 0;
-
-    const updateGlow = () => {
-      rafId = 0;
-      if (cursorGlowRef.current) {
-        cursorGlowRef.current.style.transform = `translate3d(${lastX - 192}px, ${lastY - 192}px, 0)`;
-      }
-    };
-
     const handleMouseMove = (e: MouseEvent) => {
-      lastX = e.clientX;
-      lastY = e.clientY;
-      if (!rafId) {
-        rafId = window.requestAnimationFrame(updateGlow);
-      }
+      setMousePosition({ x: e.clientX, y: e.clientY });
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (rafId) window.cancelAnimationFrame(rafId);
-    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const scrollToAbout = () => {
@@ -85,6 +37,10 @@ export function Hero() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  // Cyberpunk matrix & binary decorative symbols
+  const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+  const binaryChars = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -96,41 +52,43 @@ export function Hero() {
         {/* Animated cyber grid */}
         <div className="absolute inset-0 cyber-grid opacity-20" />
         
-        {/* Interactive cursor glow (GPU-composited via ref + rAF, zero React re-renders) */}
+        {/* Interactive cursor glow */}
         <div 
-          ref={cursorGlowRef}
-          className="absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none"
+          className="absolute w-96 h-96 rounded-full pointer-events-none transition-all duration-300 ease-out"
           style={{
-            transform: 'translate3d(-192px, -192px, 0)',
-            willChange: 'transform',
+            left: mousePosition.x - 192,
+            top: mousePosition.y - 192,
             background: `radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)`,
           }}
         />
 
         {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
         <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
-          {MATRIX_COLUMNS.map((col, i) => (
+          {Array.from({ length: 25 }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute select-none fira-code pointer-events-none"
               style={{
-                left: col.left,
-                fontSize: col.fontSize,
-                color: col.color,
+                left: `${(i * 4) + 1}%`,
+                fontSize: `${(i % 3) * 3 + 9}px`,
+                color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8'
               }}
               animate={{
                 y: ['-10vh', '110vh'],
               }}
               transition={{
-                duration: col.duration,
+                duration: (i % 4) + 3.5,
                 repeat: Infinity,
-                delay: col.delay,
+                delay: (i % 5) * 0.7,
                 ease: "linear"
               }}
             >
-              {col.chars.map((item, j) => (
-                <div key={j} style={{ opacity: item.opacity }}>
-                  {item.char}
+              {Array.from({ length: 18 }).map((_, j) => (
+                <div key={j} style={{ opacity: 1 - (j * 0.05) }}>
+                  {i % 2 === 0 
+                    ? matrixChars[(i + j) % matrixChars.length]
+                    : binaryChars[(i * 2 + j) % binaryChars.length]
+                  }
                 </div>
               ))}
             </motion.div>
@@ -138,24 +96,24 @@ export function Hero() {
         </div>
 
         {/* Floating geometric shapes */}
-        {FLOATING_SHAPES.map((shape, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <motion.div
             key={i}
             className="absolute"
             style={{
-              left: shape.left,
-              top: shape.top,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
             }}
             animate={{
               y: [0, -30, 0],
-              x: [0, shape.dx, 0],
+              x: [0, Math.random() * 20 - 10, 0],
               rotate: [0, 360],
               scale: [1, 1.2, 1],
             }}
             transition={{
-              duration: shape.duration,
+              duration: Math.random() * 6 + 8,
               repeat: Infinity,
-              delay: shape.delay,
+              delay: Math.random() * 2,
               ease: "easeInOut"
             }}
           >
@@ -164,7 +122,7 @@ export function Hero() {
                 i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
                 i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
                 'bg-[#B026FF]/20 border-[#B026FF]/40'
-              } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+              } border ${Math.random() > 0.5 ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
             />
           </motion.div>
         ))}
@@ -249,7 +207,6 @@ export function Hero() {
             <motion.div
               initial={false}
               animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.03 }}
               className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full"
             >
               <Shield size={16} className="text-[#39FF14]" />
@@ -323,7 +280,6 @@ export function Hero() {
                   className="glass-strong p-4 rounded-xl text-center"
                   style={{ boxShadow: `0 0 28px ${stat.color}25` }}
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   <div className="text-3xl mb-2 orbitron" style={{ color: stat.color }}>
                     {stat.value}
@@ -452,8 +408,8 @@ export function Hero() {
                    <img
                      src={profileImage}
                      alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
-                     width={574}
-                     height={765}
+                     width={960}
+                     height={1280}
                      {...{ fetchpriority: 'high' }}
                      draggable={false}
                      onContextMenu={(e) => e.preventDefault()}
