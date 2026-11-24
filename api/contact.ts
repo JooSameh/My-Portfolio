@@ -40,27 +40,27 @@ const MAX_REQUESTS_PER_WINDOW = 3 // Max 3 messages per minute per IP
 const stripCRLF = (val: string) => val.replace(/[\r\n]+/g, ' ').trim()
 const stripHTML = (val: string) => val.replace(/<[^>]*>?/gm, '').trim()
 
-// 4. Strict Origin / Referer Allowlist (blocks cross-origin & wildcard subdomain API abuse)
+// 4. Strict Origin / Referer Allowlist
 const ALLOWED_ORIGINS = new Set([
   'https://youssef-elgendy.vercel.app',
-  'http://localhost:3000',
+  ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:3000'] : []),
 ])
 
 function isOriginAllowed(origin: string | undefined, referer: string | undefined): boolean {
   const isExactOriginAllowed = (rawUrl: string | undefined): boolean => {
     if (!rawUrl) return false
     try {
-      const parsed = new URL(rawUrl)
-      return ALLOWED_ORIGINS.has(parsed.origin)
+      return ALLOWED_ORIGINS.has(new URL(rawUrl).origin)
     } catch {
       return false
     }
   }
 
-  return isExactOriginAllowed(origin) || isExactOriginAllowed(referer)
+  if (origin) return isExactOriginAllowed(origin)
+  return isExactOriginAllowed(referer)
 }
 
-// 5. Rate Limiter (Persistent Upstash Redis REST API when configured, with In-Memory Sliding Window fallback)
+// 5. Rate Limiter (Upstash Redis REST API with In-Memory Sliding Window fallback)
 const ipRequestHistory = new Map<string, number[]>()
 
 export async function isRateLimited(clientIp: string): Promise<boolean> {
@@ -122,18 +122,20 @@ app.use('*', async (c: any, next: any) => {
   c.header('X-XSS-Protection', '0')
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
   c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), display-capture=()')
+  c.header('Cross-Origin-Resource-Policy', 'same-origin')
+  c.header('Cache-Control', 'no-store')
 })
 
 // Handler for contact submission
 const handleContact = async (c: any) => {
-  // A. Strict Origin / Referer Validation (blocks cross-origin API abuse)
+  // A. Strict Origin / Referer Validation
   const origin = c.req.header('origin')
   const referer = c.req.header('referer')
   if (!isOriginAllowed(origin, referer)) {
     return c.json({ success: false, error: 'Forbidden origin.' }, 403)
   }
 
-  // B. Strict Content-Type Enforcement (Anti-CSRF simple request protection)
+  // B. Strict Content-Type Enforcement
   const contentType = c.req.header('content-type') || ''
   if (!contentType.toLowerCase().includes('application/json')) {
     return c.json(
@@ -153,135 +155,5 @@ const handleContact = async (c: any) => {
 
   // D. Trusted Edge Client IP Identification & Rate Limiting
   const clientIp =
-    c.req.header('x-real-ip') ||
     c.req.header('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
-    c.req.header('cf-connecting-ip') ||
-    '127.0.0.1'
-
-  if (await isRateLimited(clientIp)) {
-    return c.json(
-      {
-        success: false,
-        error: 'Too many requests. Please wait a moment before sending another message.',
-      },
-      429
-    )
-  }
-
-  // E. Read & Validate Raw Body Size
-  let rawBodyText = ''
-  try {
-    rawBodyText = await c.req.text()
-  } catch {
-    return c.json({ success: false, error: 'Failed to read request body.' }, 400)
-  }
-
-  if (rawBodyText.length > MAX_PAYLOAD_BYTES) {
-    return c.json(
-      { success: false, error: 'Payload too large. Maximum allowed size is 10KB.' },
-      413
-    )
-  }
-
-  // F. Parse JSON Body
-  let parsedJson: unknown
-  try {
-    parsedJson = JSON.parse(rawBodyText || '{}')
-  } catch {
-    return c.json({ success: false, error: 'Malformed JSON payload.' }, 400)
-  }
-
-  // G. Strict Zod Schema Validation
-  const validationResult = ContactSchema.safeParse(parsedJson)
-  if (!validationResult.success) {
-    const errorDetails = (validationResult.error.issues || []).map((e) => ({
-      field: e.path.join('.'),
-      message: e.message,
-    }))
-    return c.json(
-      {
-        success: false,
-        error: 'Validation failed.',
-        details: errorDetails,
-      },
-      400
-    )
-  }
-
-  const { name, email, subject, message, botField } = validationResult.data
-
-  // H. Honeypot Bot Detection
-  if (botField && botField.trim().length > 0) {
-    console.warn(`[Security Alert] Bot submission trapped by honeypot from IP: ${clientIp}`)
-    return c.json({
-      success: true,
-      message: 'Message received safely.',
-    })
-  }
-
-  // I. HTML & CRLF Injection Sanitization
-  const safeName = stripCRLF(stripHTML(name))
-  const safeEmail = stripCRLF(email)
-  const safeSubject = stripCRLF(stripHTML(subject))
-  const safeMessage = stripHTML(message)
-
-  // J. Server-Side Web3Forms Forwarding via Environment Variable (never hardcoded or exposed to client)
-  const web3FormsKey = process.env.WEB3FORMS_ACCESS_KEY
-  if (!web3FormsKey) {
-    return c.json(
-      {
-        success: false,
-        error: 'Mail service is not configured on the server. Please contact via LinkedIn or Gmail.',
-      },
-      503
-    )
-  }
-
-  try {
-    const upstreamRes = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        access_key: web3FormsKey,
-        name: safeName,
-        email: safeEmail,
-        subject: safeSubject,
-        message: safeMessage,
-      }),
-    })
-
-    const upstreamData = (await upstreamRes.json()) as { success?: boolean; message?: string }
-    if (!upstreamRes.ok || !upstreamData.success) {
-      return c.json(
-        { success: false, error: upstreamData.message || 'Upstream mail delivery failed.' },
-        502
-      )
-    }
-
-    return c.json({
-      success: true,
-      message: 'Message received safely.',
-    })
-  } catch {
-    return c.json({ success: false, error: 'Failed to deliver message.' }, 502)
-  }
-}
-
-// Support POST on all routing variations Vercel might pass
-app.post('/', handleContact)
-app.post('/api/contact', handleContact)
-app.post('/contact', handleContact)
-
-// Catch-all for invalid HTTP methods (Method Not Allowed)
-app.all('*', (c: any) => {
-  if (c.req.method !== 'POST') {
-    c.header('Allow', 'POST')
-    return c.json({ success: false, error: 'Method Not Allowed. Only POST requests are accepted.' }, 405)
-  }
-  return c.json({ success: false, error: 'Endpoint not found' }, 404)
-})
-
-export default handle(app)
+    c.
