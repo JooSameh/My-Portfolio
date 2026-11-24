@@ -1,6 +1,6 @@
 import { Mail, Github, Linkedin, Menu, X, Terminal, Shield, Cpu } from 'lucide-react';
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,7 +14,7 @@ export function Header() {
   };
 
   return (
-    <motion.header 
+    <m.header 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6 }}
@@ -23,7 +23,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Cyberpunk Logo */}
-          <motion.div 
+          <m.div 
             className="flex items-center gap-3"
             whileHover={{ scale: 1.05 }}
           >
@@ -39,7 +39,7 @@ export function Header() {
               <h1 className="text-lg neon-text-blue orbitron tracking-wide">Youssef EL-Gendy</h1>
               <p className="text-xs text-[#94A3B8] fira-code">security.instructor</p>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
@@ -52,7 +52,7 @@ export function Header() {
               { id: 'skills', label: 'Skills' },
               { id: 'contact', label: 'Contact' }
             ].map((section) => (
-              <motion.button
+              <m.button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className="glass px-4 py-2 rounded-lg text-[#E2E8F0] hover:text-[#00F5FF] transition-all duration-300 text-sm orbitron"
@@ -63,7 +63,7 @@ export function Header() {
                 whileTap={{ scale: 0.95 }}
               >
                 {section.label}
-              </motion.button>
+              </m.button>
             ))}
           </nav>
 
@@ -76,7 +76,7 @@ export function Header() {
             
             {/* Quick Access Icons */}
             <div className="flex items-center space-x-2">
-              <motion.a 
+              <m.a 
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
                 target="_blank"
                 rel="noopener noreferrer"
@@ -86,8 +86,8 @@ export function Header() {
                 whileTap={{ scale: 0.9 }}
               >
                 <Mail size={16} className="text-[#00F5FF]" />
-              </motion.a>
-              <motion.a 
+              </m.a>
+              <m.a 
                 href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369" 
                 target="_blank"
                 rel="noopener"
@@ -98,8 +98,8 @@ export function Header() {
                 whileTap={{ scale: 0.9 }}
               >
                 <Linkedin size={16} className="text-[#00F5FF]" />
-              </motion.a>
-              <motion.a 
+              </m.a>
+              <m.a 
                 href="https://github.com/JooSameh" 
                 target="_blank"
                 rel="noopener noreferrer"
@@ -109,12 +109,12 @@ export function Header() {
                 whileTap={{ scale: 0.9 }}
               >
                 <Github size={16} className="text-[#00F5FF]" />
-              </motion.a>
+              </m.a>
             </div>
           </div>
 
           {/* Cyberpunk Mobile Menu Button */}
-          <motion.button
+          <m.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle navigation menu"
             aria-expanded={isMenuOpen}
@@ -122,7 +122,7 @@ export function Header() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <motion.div
+            <m.div
               animate={{ rotate: isMenuOpen ? 90 : 0 }}
               transition={{ duration: 0.2 }}
             >
@@ -130,12 +130,12 @@ export function Header() {
                 <X size={20} className="text-[#FF073A]" /> : 
                 <Menu size={20} className="text-[#00F5FF]" />
               }
-            </motion.div>
-          </motion.button>
+            </m.div>
+          </m.button>
         </div>
 
         {/* Enhanced Mobile Menu */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ 
             opacity: isMenuOpen ? 1 : 0, 
@@ -155,7 +155,7 @@ export function Header() {
                 { id: 'skills', label: 'Skills', icon: Shield },
                 { id: 'contact', label: 'Contact', icon: Mail }
               ].map((section, index) => (
-                <motion.button
+                <m.button
                   key={section.id}
                   onClick={() => scrollToSection(section.id)}
                   className="glass p-3 rounded-lg text-left hover:neon-blue transition-all"
@@ -168,13 +168,13 @@ export function Header() {
                     <section.icon size={16} className="text-[#00F5FF]" />
                     <span className="text-sm text-[#E2E8F0] orbitron">{section.label}</span>
                   </div>
-                </motion.button>
+                </m.button>
               ))}
             </nav>
             
             {/* Mobile Social Links */}
             <div className="flex justify-center space-x-4 pb-2">
-              <motion.a 
+              <m.a 
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com" 
                 target="_blank"
                 rel="noopener noreferrer"
@@ -183,8 +183,8 @@ export function Header() {
                 whileHover={{ scale: 1.1 }}
               >
                 <Mail size={18} className="text-[#00F5FF]" />
-              </motion.a>
-              <motion.a 
+              </m.a>
+              <m.a 
                 href="https://www.linkedin.com/in/youssef-el-gendy-1b6b95369" 
                 target="_blank"
                 rel="noopener"
@@ -194,8 +194,8 @@ export function Header() {
                 whileHover={{ scale: 1.1 }}
               >
                 <Linkedin size={18} className="text-[#00F5FF]" />
-              </motion.a>
-              <motion.a 
+              </m.a>
+              <m.a 
                 href="https://github.com/JooSameh" 
                 target="_blank"
                 rel="noopener noreferrer"
@@ -204,11 +204,11 @@ export function Header() {
                 whileHover={{ scale: 1.1 }}
               >
                 <Github size={18} className="text-[#00F5FF]" />
-              </motion.a>
+              </m.a>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
-    </motion.header>
+    </m.header>
   );
 }
