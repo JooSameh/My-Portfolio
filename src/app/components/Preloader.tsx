@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { m, AnimatePresence } from 'motion/react';
 import { Shield, Terminal } from 'lucide-react';
 
 export function Preloader() {
@@ -16,7 +16,7 @@ export function Preloader() {
   return (
     <AnimatePresence>
       {loading && (
-        <motion.div
+        <m.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -27,7 +27,7 @@ export function Preloader() {
           <div className="absolute inset-0 cyber-grid opacity-20" />
 
           {/* Glowing orb (GPU-composited transform & opacity) */}
-          <motion.div
+          <m.div
             className="absolute w-[400px] h-[400px] rounded-full opacity-30 pointer-events-none"
             style={{
               background: 'radial-gradient(circle, rgba(0, 245, 255, 0.4) 0%, transparent 70%)',
@@ -47,7 +47,7 @@ export function Preloader() {
 
           <div className="relative z-10 text-center px-4">
             {/* Animated Shield Icon */}
-            <motion.div
+            <m.div
               className="flex justify-center mb-8"
               style={{ willChange: 'transform' }}
               animate={{
@@ -65,16 +65,16 @@ export function Preloader() {
                 >
                   <Shield className="text-[#00F5FF]" size={48} />
                 </div>
-                <motion.div
+                <m.div
                   className="absolute -top-2 -right-2 w-6 h-6 bg-[#39FF14] rounded-full shadow-[0_0_16px_rgba(57,255,20,0.6)]"
                   animate={{ opacity: [0.6, 1, 0.6], scale: [0.9, 1.08, 0.9] }}
                   transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
                 />
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Loading Text */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -86,12 +86,12 @@ export function Preloader() {
                 <Terminal size={16} className="text-[#00F5FF]" />
                 <span className="fira-code text-sm">Loading cybersecurity portfolio...</span>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Loading Bar (GPU-composited scaleX) */}
             <div className="mt-8 w-64 mx-auto">
               <div className="h-1 glass rounded-full overflow-hidden">
-                <motion.div
+                <m.div
                   className="h-full w-full origin-left bg-gradient-to-r from-[#00F5FF] to-[#39FF14]"
                   style={{ willChange: 'transform' }}
                   initial={{ scaleX: 0 }}
@@ -102,15 +102,15 @@ export function Preloader() {
             </div>
 
             {/* Binary code animation */}
-            <motion.div
+            <m.div
               className="mt-6 fira-code text-xs text-[#00F5FF]/50 select-none pointer-events-none"
               animate={{ opacity: [0.35, 0.75, 0.35] }}
               transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
             >
               01001000 01100101 01101100 01101100 01101111
-            </motion.div>
+            </m.div>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
