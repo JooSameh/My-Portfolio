@@ -3,6 +3,7 @@ import { Hero } from './components/Hero';
 import { Preloader } from './components/Preloader';
 import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
+import { LazyMotion, domAnimation } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
@@ -245,66 +246,68 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
-      <Preloader />
-      <ScreenShieldOverlay />
-      <Header />
-      <main>
-        <Hero />
-        <DeferredSection id="about" rootMargin="0px">
-          <About />
+    <LazyMotion features={domAnimation} strict>
+      <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
+        <Preloader />
+        <ScreenShieldOverlay />
+        <Header />
+        <main>
+          <Hero />
+          <DeferredSection id="about" rootMargin="0px">
+            <About />
+          </DeferredSection>
+          <DeferredSection id="education">
+            <Education />
+          </DeferredSection>
+          <DeferredSection id="experience">
+            <Experience />
+          </DeferredSection>
+          <DeferredSection id="projects">
+            <Projects />
+          </DeferredSection>
+          <DeferredSection id="certifications">
+            <Certifications />
+          </DeferredSection>
+          <DeferredSection id="skills">
+            <Skills />
+          </DeferredSection>
+          <DeferredSection id="contact">
+            <Contact />
+          </DeferredSection>
+        </main>
+        <DeferredSection minHeight="min-h-[180px]">
+          <Footer />
         </DeferredSection>
-        <DeferredSection id="education">
-          <Education />
-        </DeferredSection>
-        <DeferredSection id="experience">
-          <Experience />
-        </DeferredSection>
-        <DeferredSection id="projects">
-          <Projects />
-        </DeferredSection>
-        <DeferredSection id="certifications">
-          <Certifications />
-        </DeferredSection>
-        <DeferredSection id="skills">
-          <Skills />
-        </DeferredSection>
-        <DeferredSection id="contact">
-          <Contact />
-        </DeferredSection>
-      </main>
-      <DeferredSection minHeight="min-h-[180px]">
-        <Footer />
-      </DeferredSection>
 
-      {/* Scroll to Top Button */}
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          aria-label="Scroll to top"
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 glass-strong rounded-full flex items-center justify-center border border-[#00F5FF]/40 hover:neon-blue hover:scale-110 active:scale-90 transition-all duration-200"
-        >
-          <ArrowUp size={20} className="text-[#00F5FF]" />
-        </button>
-      )}
+        {/* Scroll to Top Button */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            aria-label="Scroll to top"
+            className="fixed bottom-8 right-8 z-50 w-12 h-12 glass-strong rounded-full flex items-center justify-center border border-[#00F5FF]/40 hover:neon-blue hover:scale-110 active:scale-90 transition-all duration-200"
+          >
+            <ArrowUp size={20} className="text-[#00F5FF]" />
+          </button>
+        )}
 
-      {mountToaster && (
-        <Suspense fallback={null}>
-          <Toaster
-            theme="dark"
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(0, 245, 255, 0.3)',
-                color: '#E2E8F0',
-                borderRadius: '12px',
-              },
-            }}
-          />
-        </Suspense>
-      )}
-    </div>
+        {mountToaster && (
+          <Suspense fallback={null}>
+            <Toaster
+              theme="dark"
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(0, 245, 255, 0.3)',
+                  color: '#E2E8F0',
+                  borderRadius: '12px',
+                },
+              }}
+            />
+          </Suspense>
+        )}
+      </div>
+    </LazyMotion>
   );
 }
