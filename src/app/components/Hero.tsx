@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { 
   Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database, Binary, HardDrive
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 
 export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -65,7 +65,7 @@ export function Hero() {
         {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
         <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
           {Array.from({ length: 25 }).map((_, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="absolute select-none fira-code pointer-events-none"
               style={{
@@ -91,13 +91,13 @@ export function Hero() {
                   }
                 </div>
               ))}
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
         {/* Floating geometric shapes */}
         {Array.from({ length: 8 }).map((_, i) => (
-          <motion.div
+          <m.div
             key={i}
             className="absolute"
             style={{
@@ -124,11 +124,11 @@ export function Hero() {
                 'bg-[#B026FF]/20 border-[#B026FF]/40'
               } border ${Math.random() > 0.5 ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
             />
-          </motion.div>
+          </m.div>
         ))}
 
         {/* Large glowing orbs */}
-        <motion.div
+        <m.div
           className="absolute w-[500px] h-[500px] rounded-full opacity-30"
           style={{ 
             left: '5%', 
@@ -146,7 +146,7 @@ export function Hero() {
             ease: "easeInOut"
           }}
         />
-        <motion.div
+        <m.div
           className="absolute w-[400px] h-[400px] rounded-full opacity-20"
           style={{ 
             right: '5%', 
@@ -168,7 +168,7 @@ export function Hero() {
       </div>
 
       {/* Cyber Defense Status HUD Node */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
@@ -193,18 +193,18 @@ export function Hero() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
-          <motion.div
+          <m.div
             initial={false}
             animate={{ opacity: 1, x: 0 }}
             className="text-center lg:text-left space-y-8"
           >
             {/* Security Badge */}
-            <motion.div
+            <m.div
               initial={false}
               animate={{ opacity: 1, scale: 1 }}
               className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full"
@@ -213,11 +213,11 @@ export function Hero() {
               <span className="text-xs uppercase tracking-widest neon-text-green orbitron">
                 Cybersecurity Specialist & Technical Instructor
               </span>
-            </motion.div>
+            </m.div>
               
             {/* Main Title with Holographic Effect */}
             <div className="space-y-6">
-              <motion.h1 
+              <m.h1 
                 initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-7xl lg:text-9xl tracking-tight orbitron"
@@ -233,9 +233,9 @@ export function Hero() {
                 >
                   EL-Gendy
                 </span>
-              </motion.h1>
+              </m.h1>
 
-              <motion.div
+              <m.div
                 initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-3"
@@ -247,11 +247,11 @@ export function Hero() {
                   <Terminal size={20} className="text-[#00F5FF] pulse-neon" />
                   <span className="fira-code">Offensive Security & AI-Driven Solutions</span>
                 </div>
-              </motion.div>
+              </m.div>
             </div>
 
             {/* Enhanced Description */}
-            <motion.div
+            <m.div
               initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="glass p-6 rounded-xl"
@@ -262,10 +262,10 @@ export function Hero() {
                 <span className="neon-text-green"> AI development</span>, and 
                 offensive security research. Keynote speaker combining technical expertise with leadership excellence.
               </p>
-            </motion.div>
+            </m.div>
 
             {/* Animated Stats */}
-            <motion.div
+            <m.div
               initial={false}
               animate={{ opacity: 1, y: 0 }}
               className="grid grid-cols-3 gap-6"
@@ -275,7 +275,7 @@ export function Hero() {
                 { value: '36+', label: 'Training Hours', color: '#39FF14' },
                 { value: '2nd Dan', label: 'Karate Black Belt', color: '#B026FF' }
               ].map((stat, index) => (
-                <motion.div
+                <m.div
                   key={index}
                   className="glass-strong p-4 rounded-xl text-center"
                   style={{ boxShadow: `0 0 28px ${stat.color}25` }}
@@ -287,18 +287,18 @@ export function Hero() {
                   <div className="text-xs text-[#94A3B8] uppercase tracking-wide">
                     {stat.label}
                   </div>
-                </motion.div>
+                </m.div>
               ))}
-            </motion.div>
+            </m.div>
 
             {/* CTA Buttons */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <motion.button
+              <m.button
                 onClick={scrollToAbout}
                 className="glass-strong px-8 py-4 rounded-full text-lg orbitron neon-blue hover:neon-green transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
@@ -308,8 +308,8 @@ export function Hero() {
                   <Eye size={20} />
                   <span>Explore Arsenal</span>
                 </div>
-              </motion.button>
-              <motion.a
+              </m.button>
+              <m.a
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=youssefs.sec@gmail.com"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -321,11 +321,11 @@ export function Hero() {
                   <Zap size={20} />
                   <span>Initialize Contact</span>
                 </div>
-              </motion.a>
-            </motion.div>
+              </m.a>
+            </m.div>
 
             {/* Floating Skill Tags */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.4 }}
@@ -337,7 +337,7 @@ export function Hero() {
                 { icon: Binary, label: "Vulnerability Research", color: '#B026FF' },
                 { icon: HardDrive, label: "Public Speaking", color: '#FF073A' }
               ].map((skill, index) => (
-                <motion.div
+                <m.div
                   key={index}
                   className="glass px-4 py-2 rounded-full border"
                   style={{ borderColor: `${skill.color}40` }}
@@ -355,20 +355,20 @@ export function Hero() {
                     <skill.icon size={16} style={{ color: skill.color }} />
                     <span className="text-sm text-[#E2E8F0] fira-code">{skill.label}</span>
                   </div>
-                </motion.div>
+                </m.div>
               ))}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
 
           {/* Right Content - 3D Profile Display */}
-          <motion.div
+          <m.div
             initial={false}
             animate={{ opacity: 1, x: 0 }}
             className="flex justify-center lg:justify-end perspective-1000"
           >
             <div className="relative preserve-3d">
               {/* Holographic Frame */}
-              <motion.div
+              <m.div
                 className="relative"
                 animate={{
                   rotateY: [0, 5, 0, -5, 0],
@@ -380,14 +380,14 @@ export function Hero() {
                 }}
               >
                 {/* Outer Scanning Ring */}
-                <motion.div
+                <m.div
                   className="absolute -inset-12 rounded-full border-2 border-[#00F5FF]/30"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                 />
                 
                 {/* Middle Pulse Ring */}
-                <motion.div
+                <m.div
                   className="absolute -inset-8 rounded-full border border-[#39FF14]/40"
                   animate={{ 
                     scale: [1, 1.1, 1],
@@ -431,7 +431,7 @@ export function Hero() {
                    <div className="absolute inset-0 holographic opacity-20 pointer-events-none z-20" />
                    
                    {/* Scanning Lines */}
-                   <motion.div
+                   <m.div
                      className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00F5FF]/30 to-transparent h-8 pointer-events-none z-20"
                      animate={{ y: ['-2rem', '24rem'] }}
                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -447,7 +447,7 @@ export function Hero() {
                   { icon: Database, position: { top: '25%', left: '0%' }, color: '#FFFF00' },
                   { icon: Cpu, position: { bottom: '35%', right: '5%' }, color: '#FF6B35' },
                 ].map((item, index) => (
-                  <motion.div
+                  <m.div
                     key={index}
                     className="absolute w-12 h-12 glass-strong rounded-xl flex items-center justify-center"
                     style={{
@@ -467,22 +467,22 @@ export function Hero() {
                     whileHover={{ scale: 1.2 }}
                   >
                     <item.icon size={20} style={{ color: item.color }} />
-                  </motion.div>
+                  </m.div>
                 ))}
-              </motion.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
 
       {/* Enhanced Scroll Indicator */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.5 }}
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center"
       >
-        <motion.div
+        <m.div
           animate={{ y: [0, 15, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
           className="flex flex-col items-center space-y-3"
@@ -491,14 +491,14 @@ export function Hero() {
             Enter Cyberspace
           </div>
           <div className="w-6 h-10 border-2 border-[#00F5FF]/60 rounded-full p-1">
-            <motion.div
+            <m.div
               className="w-2 h-2 bg-[#00F5FF] rounded-full mx-auto"
               animate={{ y: [0, 16, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             />
           </div>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
     </section>
   );
 }
