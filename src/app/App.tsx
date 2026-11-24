@@ -2,8 +2,7 @@ import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Preloader } from './components/Preloader';
 import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowUp } from 'lucide-react';
 
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
@@ -16,18 +15,79 @@ const Contact = lazy(() => import('./components/Contact').then((m) => ({ default
 const Footer = lazy(() => import('./components/Footer').then((m) => ({ default: m.Footer })));
 const Toaster = lazy(() => import('./components/ui/sonner').then((m) => ({ default: m.Toaster })));
 
-const SectionFallback = () => <div className="min-h-[800px]" aria-hidden="true" />;
-const FooterFallback = () => <div className="min-h-[180px]" aria-hidden="true" />;
+function DeferredSection({
+  id,
+  minHeight = 'min-h-[800px]',
+  rootMargin = '200px',
+  children,
+}: {
+  id?: string;
+  minHeight?: string;
+  rootMargin?: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    if (shouldLoad) return;
+    const el = ref.current;
+    if (!el) return;
+
+    if (id && window.location.hash === `#${id}`) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const onHashChange = () => {
+      if (id && window.location.hash === `#${id}`) {
+        setShouldLoad(true);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin, threshold: 0.01 }
+    );
+
+    observer.observe(el);
+    window.addEventListener('hashchange', onHashChange);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('hashchange', onHashChange);
+    };
+  }, [id, rootMargin, shouldLoad]);
+
+  return (
+    <div id={id} ref={ref} className={shouldLoad ? undefined : minHeight}>
+      {shouldLoad ? (
+        <Suspense fallback={<div className={minHeight} aria-hidden="true" />}>
+          {children}
+        </Suspense>
+      ) : null}
+    </div>
+  );
+}
 
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [mountToaster, setMountToaster] = useState(false);
 
   useEffect(() => {
     // Ensure any lingering lock class is cleared
     document.documentElement.classList.remove('cyber-shield-locked');
 
+    const enableToaster = () => setMountToaster(true);
+
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 500);
+      setMountToaster(true);
     };
 
     // 1. Prevent Right-Click on the entire website except within form inputs
@@ -76,7 +136,6 @@ export default function App() {
     };
 
     // 6. Block copy shortcuts, view-source (Ctrl+U), DevTools (F12 / Ctrl+Shift+I/J/C/K), and save/print
-    // Uses physical key `e.code` & `e.keyCode` so Arabic or non-Latin keyboard layouts CANNOT bypass shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -107,9 +166,7 @@ export default function App() {
         return;
       }
 
-      // DevTools Inspect / Console / Element Picker:
-      // Windows/Linux: Ctrl + Shift + I / J / C / K
-      // macOS: Cmd + Option/Alt + I / J / C / U
+      // DevTools Inspect / Console / Element Picker
       if (
         isCtrlOrMeta &&
         (e.shiftKey || e.altKey) &&
@@ -159,6 +216,7 @@ export default function App() {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('pointerdown', enableToaster, { once: true, passive: true });
     document.addEventListener('contextmenu', handleContextMenu, true);
     document.addEventListener('copy', handleCopy, true);
     document.addEventListener('cut', handleCut, true);
@@ -170,6 +228,7 @@ export default function App() {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('pointerdown', enableToaster);
       document.removeEventListener('contextmenu', handleContextMenu, true);
       document.removeEventListener('copy', handleCopy, true);
       document.removeEventListener('cut', handleCut, true);
@@ -192,79 +251,60 @@ export default function App() {
       <Header />
       <main>
         <Hero />
-        <div id="about">
-          <Suspense fallback={<SectionFallback />}>
-            <About />
-          </Suspense>
-        </div>
-        <div id="education">
-          <Suspense fallback={<SectionFallback />}>
-            <Education />
-          </Suspense>
-        </div>
-        <div id="experience">
-          <Suspense fallback={<SectionFallback />}>
-            <Experience />
-          </Suspense>
-        </div>
-        <div id="projects">
-          <Suspense fallback={<SectionFallback />}>
-            <Projects />
-          </Suspense>
-        </div>
-        <div id="certifications">
-          <Suspense fallback={<SectionFallback />}>
-            <Certifications />
-          </Suspense>
-        </div>
-        <div id="skills">
-          <Suspense fallback={<SectionFallback />}>
-            <Skills />
-          </Suspense>
-        </div>
-        <div id="contact">
-          <Suspense fallback={<SectionFallback />}>
-            <Contact />
-          </Suspense>
-        </div>
+        <DeferredSection id="about" rootMargin="0px">
+          <About />
+        </DeferredSection>
+        <DeferredSection id="education">
+          <Education />
+        </DeferredSection>
+        <DeferredSection id="experience">
+          <Experience />
+        </DeferredSection>
+        <DeferredSection id="projects">
+          <Projects />
+        </DeferredSection>
+        <DeferredSection id="certifications">
+          <Certifications />
+        </DeferredSection>
+        <DeferredSection id="skills">
+          <Skills />
+        </DeferredSection>
+        <DeferredSection id="contact">
+          <Contact />
+        </DeferredSection>
       </main>
-      <Suspense fallback={<FooterFallback />}>
+      <DeferredSection minHeight="min-h-[180px]">
         <Footer />
-      </Suspense>
-      
-      {/* Scroll to Top Button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0 }}
-            onClick={scrollToTop}
-            aria-label="Scroll to top"
-            className="fixed bottom-8 right-8 z-50 w-12 h-12 glass-strong rounded-full flex items-center justify-center border border-[#00F5FF]/40 hover:neon-blue transition-all"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ArrowUp size={20} className="text-[#00F5FF]" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      </DeferredSection>
 
-      <Suspense fallback={null}>
-        <Toaster 
-          theme="dark"
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(0, 245, 255, 0.3)',
-              color: '#E2E8F0',
-              borderRadius: '12px',
-            },
-          }}
-        />
-      </Suspense>
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+          className="fixed bottom-8 right-8 z-50 w-12 h-12 glass-strong rounded-full flex items-center justify-center border border-[#00F5FF]/40 hover:neon-blue hover:scale-110 active:scale-90 transition-all duration-200"
+        >
+          <ArrowUp size={20} className="text-[#00F5FF]" />
+        </button>
+      )}
+
+      {mountToaster && (
+        <Suspense fallback={null}>
+          <Toaster
+            theme="dark"
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(0, 245, 255, 0.3)',
+                color: '#E2E8F0',
+                borderRadius: '12px',
+              },
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
