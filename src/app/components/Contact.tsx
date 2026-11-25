@@ -154,7 +154,7 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="text-white orbitron">Location</h4>
-                  <span className="text-gray-400 fira-code text-sm">27 Ammar Hassan St. - Ezz El Din Omar Ext., Cairo, Egypt</span>
+                  <span className="text-gray-400 fira-code text-sm">Haram, Giza, Egypt</span>
                 </div>
               </motion.div>
             </div>
