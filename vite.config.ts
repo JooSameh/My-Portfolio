@@ -29,41 +29,6 @@ function checkRateLimit(ip: string): boolean {
   return true
 }
 
-function inlineCssPlugin() {
-  return {
-    name: 'inline-css',
-    apply: 'build' as const,
-    enforce: 'post' as const,
-    transformIndexHtml: {
-      order: 'post' as const,
-      handler(html: string, ctx: any) {
-        if (!ctx?.bundle) return html
-        let result = html
-        for (const [fileName, chunk] of Object.entries<any>(ctx.bundle)) {
-          if (fileName.endsWith('.css') && chunk.type === 'asset') {
-            const cssText =
-              typeof chunk.source === 'string'
-                ? chunk.source
-                : new TextDecoder().decode(chunk.source)
-            const escaped = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-            const linkRegex = new RegExp(
-              `<link\\b[^>]*rel=["']stylesheet["'][^>]*href=["']\\/?${escaped}["'][^>]*>|<link\\b[^>]*href=["']\\/?${escaped}["'][^>]*rel=["']stylesheet["'][^>]*>`,
-              'gi'
-            )
-            const safeCss = cssText.replace(/<\/style/gi, '<\\/style')
-            const updated = result.replace(linkRegex, () => `<style>${safeCss}</style>`)
-            if (updated !== result) {
-              result = updated
-              delete ctx.bundle[fileName]
-            }
-          }
-        }
-        return result
-      },
-    },
-  }
-}
-
 function apiPlugin() {
   return {
     name: 'api-middleware',
@@ -225,7 +190,6 @@ export default defineConfig({
     apiPlugin(),
     react(),
     tailwindcss(),
-    inlineCssPlugin(),
   ],
   build: {
     sourcemap: false,
