@@ -20,7 +20,7 @@
         { "key": "Reporting-Endpoints", "value": "csp-endpoint=\"https://youssef-elgendy.vercel.app/api/csp-report\"" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri /api/csp-report; report-to csp-endpoint;"
+          "value": "default-src 'none'; script-src 'self'; style-src 'self' 'sha256-c4naiziEB5kL/ixiQyN0tvXnZObkitNUTibWCntbtpw=' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri /api/csp-report; report-to csp-endpoint;"
         }
       ]
     },
