@@ -118,4 +118,81 @@ function apiPlugin() {
                 return
               }
 
-              const stripCRLF = (v: string) => v.replace(/[\r\n
+              const stripCRLF = (v: string) => v.replace(/[\r\n]+/g, ' ').trim()
+              const stripHTML = (v: string) => v.replace(/<[^>]*>?/gm, '').trim()
+              const safePayload = {
+                name: stripCRLF(stripHTML(result.data.name)),
+                email: stripCRLF(result.data.email),
+                subject: stripCRLF(stripHTML(result.data.subject)),
+                message: stripHTML(result.data.message),
+              }
+
+              const web3FormsKey = process.env.WEB3FORMS_ACCESS_KEY
+              if (web3FormsKey) {
+                fetch('https://api.web3forms.com/submit', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                  body: JSON.stringify({ access_key: web3FormsKey, ...safePayload }),
+                })
+                  .then(async (upstream) => {
+                    const json = await upstream.json()
+                    res.setHeader('Content-Type', 'application/json')
+                    res.statusCode = upstream.ok && json.success ? 200 : 502
+                    res.end(JSON.stringify(
+                      upstream.ok && json.success
+                        ? { success: true, message: 'Message received safely.' }
+                        : { success: false, error: json.message || 'Upstream mail delivery failed.' }
+                    ))
+                  })
+                  .catch(() => {
+                    res.setHeader('Content-Type', 'application/json')
+                    res.statusCode = 502
+                    res.end(JSON.stringify({ success: false, error: 'Failed to deliver message.' }))
+                  })
+                return
+              }
+
+              res.setHeader('Content-Type', 'application/json')
+              res.statusCode = 200
+              res.end(JSON.stringify({ success: true, message: 'Message received safely (dev preview mode).' }))
+            } catch {
+              res.setHeader('Content-Type', 'application/json')
+              res.statusCode = 400
+              res.end(JSON.stringify({ success: false, error: 'Invalid JSON request' }))
+            }
+          })
+          return
+        }
+        if (req.url === '/make-server-8807cd9f/health') {
+          res.setHeader('Content-Type', 'application/json')
+          res.statusCode = 200
+          res.end(JSON.stringify({ status: 'ok' }))
+          return
+        }
+        next()
+      })
+    },
+  }
+}
+
+export default defineConfig({
+  plugins: [
+    apiPlugin(),
+    react(),
+    tailwindcss(),
+  ],
+  build: {
+    sourcemap: false,
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+    allowedHosts: true,
+  },
+  resolve: {
+    alias: {
+      '@/styles': path.resolve(__dirname, './src/styles'),
+      '@': path.resolve(__dirname, './src/app'),
+    },
+  },
+})
