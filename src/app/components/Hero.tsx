@@ -295,7 +295,7 @@ export function Hero() {
             <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
+              transition={{ delay: 0.15 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <m.button
@@ -328,7 +328,7 @@ export function Hero() {
             <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4 }}
+              transition={{ delay: 0.25 }}
               className="flex flex-wrap gap-3 justify-center lg:justify-start"
             >
               {[
