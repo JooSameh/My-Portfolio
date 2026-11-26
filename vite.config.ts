@@ -175,11 +175,38 @@ function apiPlugin() {
   }
 }
 
+function inlineCssPlugin() {
+  return {
+    name: 'inline-css',
+    enforce: 'post' as const,
+    generateBundle(_: any, bundle: Record<string, any>) {
+      const htmlFile = bundle['index.html']
+      if (!htmlFile || typeof htmlFile.source !== 'string') return
+
+      for (const [fileName, asset] of Object.entries(bundle)) {
+        if (fileName.endsWith('.css') && asset.type === 'asset') {
+          const escapedName = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          const cssTagRegex = new RegExp(
+            `<link[^>]+href=["'][^"']*${escapedName}["'][^>]*>`,
+            'i'
+          )
+          htmlFile.source = htmlFile.source.replace(
+            cssTagRegex,
+            `<style>${asset.source}</style>`
+          )
+          delete bundle[fileName]
+        }
+      }
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     apiPlugin(),
     react(),
     tailwindcss(),
+    inlineCssPlugin(),
   ],
   build: {
     sourcemap: false,
