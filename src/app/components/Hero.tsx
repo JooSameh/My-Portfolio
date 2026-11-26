@@ -6,7 +6,6 @@ import { m } from 'motion/react';
 
 export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [mountEffects, setMountEffects] = useState(false);
   const [profileImage] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('custom_profile_image');
@@ -24,16 +23,12 @@ export function Hero() {
   });
 
   useEffect(() => {
-    const timer = setTimeout(() => setMountEffects(true), 350);
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const scrollToAbout = () => {
@@ -67,75 +62,70 @@ export function Hero() {
           }}
         />
 
-        {/* Deferred Heavy Decorative Animations so First Paint & TBT stay at 0ms */}
-        {mountEffects && (
-          <>
-            {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
-            <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
-              {Array.from({ length: 18 }).map((_, i) => (
-                <m.div
-                  key={i}
-                  className="absolute select-none fira-code pointer-events-none"
-                  style={{
-                    left: `${(i * 5.5) + 1}%`,
-                    fontSize: `${(i % 3) * 3 + 9}px`,
-                    color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8'
-                  }}
-                  animate={{
-                    y: ['-10vh', '110vh'],
-                  }}
-                  transition={{
-                    duration: (i % 4) + 3.5,
-                    repeat: Infinity,
-                    delay: (i % 5) * 0.4,
-                    ease: "linear"
-                  }}
-                >
-                  {Array.from({ length: 14 }).map((_, j) => (
-                    <div key={j} style={{ opacity: 1 - (j * 0.06) }}>
-                      {i % 2 === 0 
-                        ? matrixChars[(i + j) % matrixChars.length]
-                        : binaryChars[(i * 2 + j) % binaryChars.length]
-                      }
-                    </div>
-                  ))}
-                </m.div>
+        {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
+        <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
+          {Array.from({ length: 25 }).map((_, i) => (
+            <m.div
+              key={i}
+              className="absolute select-none fira-code pointer-events-none"
+              style={{
+                left: `${(i * 4) + 1}%`,
+                fontSize: `${(i % 3) * 3 + 9}px`,
+                color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8'
+              }}
+              animate={{
+                y: ['-10vh', '110vh'],
+              }}
+              transition={{
+                duration: (i % 4) + 3.5,
+                repeat: Infinity,
+                delay: (i % 5) * 0.7,
+                ease: "linear"
+              }}
+            >
+              {Array.from({ length: 18 }).map((_, j) => (
+                <div key={j} style={{ opacity: 1 - (j * 0.05) }}>
+                  {i % 2 === 0 
+                    ? matrixChars[(i + j) % matrixChars.length]
+                    : binaryChars[(i * 2 + j) % binaryChars.length]
+                  }
+                </div>
               ))}
-            </div>
+            </m.div>
+          ))}
+        </div>
 
-            {/* Floating geometric shapes */}
-            {Array.from({ length: 6 }).map((_, i) => (
-              <m.div
-                key={i}
-                className="absolute"
-                style={{
-                  left: `${(i * 16 + 8) % 95}%`,
-                  top: `${(i * 23 + 12) % 90}%`,
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  x: [0, (i % 2 === 0 ? 10 : -10), 0],
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: (i % 4) + 8,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                  ease: "easeInOut"
-                }}
-              >
-                <div 
-                  className={`w-4 h-4 ${
-                    i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
-                    i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
-                    'bg-[#B026FF]/20 border-[#B026FF]/40'
-                  } border ${i % 2 === 0 ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
-                />
-              </m.div>
-            ))}
-          </>
-        )}
+        {/* Floating geometric shapes */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <m.div
+            key={i}
+            className="absolute"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              x: [0, Math.random() * 20 - 10, 0],
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: Math.random() * 6 + 8,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+              ease: "easeInOut"
+            }}
+          >
+            <div 
+              className={`w-4 h-4 ${
+                i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
+                i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
+                'bg-[#B026FF]/20 border-[#B026FF]/40'
+              } border ${Math.random() > 0.5 ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+            />
+          </m.div>
+        ))}
 
         {/* Large glowing orbs */}
         <m.div
@@ -172,16 +162,16 @@ export function Hero() {
             duration: 4,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 0.5
+            delay: 1
           }}
         />
       </div>
 
       {/* Cyber Defense Status HUD Node */}
       <m.div
-        initial={{ opacity: 0, y: -15 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
+        transition={{ delay: 1 }}
         className="absolute top-24 lg:top-28 right-8 glass-strong rounded-xl p-3.5 z-20 hidden lg:block border border-[#00F5FF]/30 select-none shadow-[0_0_20px_rgba(0,245,255,0.15)]"
       >
         <div className="space-y-2">
@@ -303,8 +293,9 @@ export function Hero() {
 
             {/* CTA Buttons */}
             <m.div
-              initial={false}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <m.button
@@ -335,8 +326,9 @@ export function Hero() {
 
             {/* Floating Skill Tags */}
             <m.div
-              initial={false}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
               className="flex flex-wrap gap-3 justify-center lg:justify-start"
             >
               {[
@@ -485,8 +477,9 @@ export function Hero() {
 
       {/* Enhanced Scroll Indicator */}
       <m.div
-        initial={false}
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center"
       >
         <m.div
