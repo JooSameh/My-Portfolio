@@ -1,12 +1,11 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { Preloader } from './components/Preloader';
+import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
-const ScreenShieldOverlay = lazy(() =>
-  import('./components/ScreenShieldOverlay').then((m) => ({ default: m.ScreenShieldOverlay }))
-);
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
 const Education = lazy(() => import('./components/Education').then((m) => ({ default: m.Education })));
 const Experience = lazy(() => import('./components/Experience').then((m) => ({ default: m.Experience })));
@@ -80,12 +79,10 @@ function DeferredSection({
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mountToaster, setMountToaster] = useState(false);
-  const [mountShield, setMountShield] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('cyber-shield-locked');
 
-    const shieldTimer = setTimeout(() => setMountShield(true), 400);
     const enableToaster = () => setMountToaster(true);
 
     const handleScroll = () => {
@@ -219,7 +216,6 @@ export default function App() {
     window.addEventListener('keyup', handleKeyUp, true);
 
     return () => {
-      clearTimeout(shieldTimer);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointerdown', enableToaster);
       document.removeEventListener('contextmenu', handleContextMenu, true);
@@ -240,11 +236,8 @@ export default function App() {
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
-        {mountShield && (
-          <Suspense fallback={null}>
-            <ScreenShieldOverlay />
-          </Suspense>
-        )}
+        <Preloader />
+        <ScreenShieldOverlay />
         <Header />
         <main>
           <Hero />
