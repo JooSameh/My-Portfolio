@@ -10,15 +10,18 @@ export function ScreenShieldOverlay() {
   const isLockedRef = useRef(false);
   const lockTimestampRef = useRef<number>(0);
 
-  const overwriteClipboard = useCallback(() => {
+  // Silent clipboard overwrite without triggering Chrome's permission prompt
+  const overwriteClipboardSilent = useCallback(() => {
     const policyText = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
     try {
+      const tempArea = document.createElement('textarea');
+      tempArea.value = policyText;
+      tempArea.setAttribute('readonly', '');
+      tempArea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+      document.body.appendChild(tempArea);
+      tempArea.select();
       document.execCommand('copy');
-    } catch {}
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(policyText).catch(() => {});
-      }
+      document.body.removeChild(tempArea);
     } catch {}
   }, []);
 
@@ -45,7 +48,7 @@ export function ScreenShieldOverlay() {
       if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
         navigator.mediaDevices.getDisplayMedia = async () => {
           engageShield('recording_blocked');
-          overwriteClipboard();
+          overwriteClipboardSilent();
           throw new DOMException('Screen recording is disabled by security policy.', 'NotAllowedError');
         };
       }
@@ -57,10 +60,13 @@ export function ScreenShieldOverlay() {
       }
     } catch {}
 
+    const isEditable = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      return el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable;
+    };
+
     const handleContextMenu = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
-      if (!isInput) {
+      if (!isEditable(e.target)) {
         e.preventDefault();
         engageShield('contextmenu');
       }
@@ -69,13 +75,14 @@ export function ScreenShieldOverlay() {
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length >= 3) {
         engageShield('multitouch');
-        overwriteClipboard();
+        overwriteClipboardSilent();
       }
     };
 
     const isActiveCaptureOrInspectKey = (e: KeyboardEvent) => {
       const key = e.key || '';
       const code = e.code || '';
+      const keyLower = key.toLowerCase();
       const kc = e.keyCode || e.which;
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
 
@@ -83,27 +90,27 @@ export function ScreenShieldOverlay() {
         return true;
       }
 
-      if (code === 'F12' || key === 'F12' || kc === 123) {
+      if (code === 'F12' || keyLower === 'f12' || kc === 123) {
         return true;
       }
 
       if (
         isCtrlOrMeta &&
         (e.shiftKey || e.altKey) &&
-        (code === 'KeyI' || kc === 73 ||
-         code === 'KeyJ' || kc === 74 ||
-         code === 'KeyC' || kc === 67 ||
-         code === 'KeyK' || kc === 75 ||
-         code === 'KeyU' || kc === 85)
+        (code === 'KeyI' || kc === 73 || keyLower === 'i' ||
+         code === 'KeyJ' || kc === 74 || keyLower === 'j' ||
+         code === 'KeyC' || kc === 67 || keyLower === 'c' ||
+         code === 'KeyK' || kc === 75 || keyLower === 'k' ||
+         code === 'KeyU' || kc === 85 || keyLower === 'u')
       ) {
         return true;
       }
 
       if (
         isCtrlOrMeta &&
-        (code === 'KeyU' || kc === 85 ||
-         code === 'KeyS' || kc === 83 ||
-         code === 'KeyP' || kc === 80)
+        (code === 'KeyU' || kc === 85 || keyLower === 'u' ||
+         code === 'KeyS' || kc === 83 || keyLower === 's' ||
+         code === 'KeyP' || kc === 80 || keyLower === 'p')
       ) {
         return true;
       }
@@ -120,21 +127,29 @@ export function ScreenShieldOverlay() {
       return false;
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyIntercept = (e: KeyboardEvent) => {
       if (isActiveCaptureOrInspectKey(e)) {
         e.preventDefault();
         e.stopPropagation();
         engageShield('shortcut');
-        overwriteClipboard();
+        overwriteClipboardSilent();
+        return;
       }
-    };
 
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (isActiveCaptureOrInspectKey(e)) {
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      const code = e.code || '';
+      const keyLower = (e.key || '').toLowerCase();
+      const kc = e.keyCode || e.which;
+
+      if (
+        isCtrlOrMeta &&
+        !isEditable(e.target) &&
+        (code === 'KeyC' || kc === 67 || keyLower === 'c' ||
+         code === 'KeyA' || kc === 65 || keyLower === 'a' ||
+         code === 'KeyX' || kc === 88 || keyLower === 'x')
+      ) {
         e.preventDefault();
         e.stopPropagation();
-        engageShield('shortcut');
-        overwriteClipboard();
       }
     };
 
@@ -146,8 +161,8 @@ export function ScreenShieldOverlay() {
 
     document.addEventListener('contextmenu', handleContextMenu, true);
     window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-    window.addEventListener('keydown', handleKeyDown, true);
-    window.addEventListener('keyup', handleKeyUp, true);
+    window.addEventListener('keydown', handleKeyIntercept, true);
+    window.addEventListener('keyup', handleKeyIntercept, true);
     window.addEventListener('wheel', handleRestoreGesture, { passive: true });
     window.addEventListener('pointerdown', handleRestoreGesture, { passive: true });
 
@@ -155,8 +170,8 @@ export function ScreenShieldOverlay() {
       document.documentElement.classList.remove('cyber-shield-locked');
       document.removeEventListener('contextmenu', handleContextMenu, true);
       window.removeEventListener('touchstart', handleTouchStart, true);
-      window.removeEventListener('keydown', handleKeyDown, true);
-      window.removeEventListener('keyup', handleKeyUp, true);
+      window.removeEventListener('keydown', handleKeyIntercept, true);
+      window.removeEventListener('keyup', handleKeyIntercept, true);
       window.removeEventListener('wheel', handleRestoreGesture);
       window.removeEventListener('pointerdown', handleRestoreGesture);
 
@@ -169,7 +184,7 @@ export function ScreenShieldOverlay() {
         }
       } catch {}
     };
-  }, [engageShield, restoreDisplay, overwriteClipboard]);
+  }, [engageShield, restoreDisplay, overwriteClipboardSilent]);
 
   const reasonMessage =
     triggerReason === 'recording_blocked'
