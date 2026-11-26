@@ -1,11 +1,13 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Preloader } from './components/Preloader';
-import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
+const ScreenShieldOverlay = lazy(() =>
+  import('./components/ScreenShieldOverlay').then((m) => ({ default: m.ScreenShieldOverlay }))
+);
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
 const Education = lazy(() => import('./components/Education').then((m) => ({ default: m.Education })));
 const Experience = lazy(() => import('./components/Experience').then((m) => ({ default: m.Experience })));
@@ -19,7 +21,7 @@ const Toaster = lazy(() => import('./components/ui/sonner').then((m) => ({ defau
 function DeferredSection({
   id,
   minHeight = 'min-h-[800px]',
-  rootMargin = '200px',
+  rootMargin = '150px',
   children,
 }: {
   id?: string;
@@ -79,9 +81,16 @@ function DeferredSection({
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mountToaster, setMountToaster] = useState(false);
+  const [mountShield, setMountShield] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('cyber-shield-locked');
+
+    // Mount shield right after initial paint to keep FCP/TBT at 100%
+    const idleId =
+      'requestIdleCallback' in window
+        ? window.requestIdleCallback(() => setMountShield(true), { timeout: 300 })
+        : window.setTimeout(() => setMountShield(true), 150);
 
     const enableToaster = () => setMountToaster(true);
 
@@ -90,38 +99,22 @@ export default function App() {
       setMountToaster(true);
     };
 
-    const handleContextMenu = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
-      if (!isInput) {
-        e.preventDefault();
-      }
-    };
-
     const POLICY_MESSAGE = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
 
-    const handleCopy = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
-      if (!isInput) {
-        e.preventDefault();
-        e.clipboardData?.setData('text/plain', POLICY_MESSAGE);
-      }
+    const isEditable = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      return el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable;
     };
 
-    const handleCut = (e: ClipboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
-      if (!isInput) {
+    const handleCopyOrCut = (e: ClipboardEvent) => {
+      if (!isEditable(e.target)) {
         e.preventDefault();
         e.clipboardData?.setData('text/plain', POLICY_MESSAGE);
       }
     };
 
     const handleSelectStart = (e: Event) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
-      if (!isInput) {
+      if (!isEditable(e.target)) {
         e.preventDefault();
       }
     };
@@ -130,102 +123,25 @@ export default function App() {
       e.preventDefault();
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
-      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
-      const code = e.code || '';
-      const keyLower = (e.key || '').toLowerCase();
-      const kc = e.keyCode || e.which;
-
-      const blockEvent = () => {
-        e.preventDefault();
-        e.stopPropagation();
-      };
-
-      if (code === 'F12' || keyLower === 'f12' || kc === 123) {
-        blockEvent();
-        return;
-      }
-
-      if (
-        isCtrlOrMeta &&
-        (code === 'KeyU' || kc === 85 || keyLower === 'u' ||
-         code === 'KeyS' || kc === 83 || keyLower === 's' ||
-         code === 'KeyP' || kc === 80 || keyLower === 'p')
-      ) {
-        blockEvent();
-        return;
-      }
-
-      if (
-        isCtrlOrMeta &&
-        (e.shiftKey || e.altKey) &&
-        (code === 'KeyI' || kc === 73 || keyLower === 'i' ||
-         code === 'KeyJ' || kc === 74 || keyLower === 'j' ||
-         code === 'KeyC' || kc === 67 || keyLower === 'c' ||
-         code === 'KeyK' || kc === 75 || keyLower === 'k' ||
-         code === 'KeyU' || kc === 85 || keyLower === 'u')
-      ) {
-        blockEvent();
-        return;
-      }
-
-      if (
-        isCtrlOrMeta &&
-        !isInput &&
-        (code === 'KeyC' || kc === 67 || keyLower === 'c' ||
-         code === 'KeyA' || kc === 65 || keyLower === 'a' ||
-         code === 'KeyX' || kc === 88 || keyLower === 'x')
-      ) {
-        blockEvent();
-        return;
-      }
-
-      if (e.key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
-        blockEvent();
-        try {
-          document.execCommand('copy');
-          navigator.clipboard?.writeText(POLICY_MESSAGE).catch(() => {});
-        } catch {}
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      const code = e.code || '';
-      const kc = e.keyCode || e.which;
-      if (e.key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
-        e.preventDefault();
-        e.stopPropagation();
-        try {
-          document.execCommand('copy');
-          navigator.clipboard?.writeText(POLICY_MESSAGE).catch(() => {});
-        } catch {}
-      }
-    };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('pointerdown', enableToaster, { once: true, passive: true });
-    document.addEventListener('contextmenu', handleContextMenu, true);
-    document.addEventListener('copy', handleCopy, true);
-    document.addEventListener('cut', handleCut, true);
+    document.addEventListener('copy', handleCopyOrCut, true);
+    document.addEventListener('cut', handleCopyOrCut, true);
     document.addEventListener('selectstart', handleSelectStart, true);
     document.addEventListener('dragstart', handleDragStart, true);
-    window.addEventListener('keydown', handleKeyDown, true);
-    document.addEventListener('keydown', handleKeyDown, true);
-    window.addEventListener('keyup', handleKeyUp, true);
 
     return () => {
+      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
+        window.cancelIdleCallback(idleId);
+      } else {
+        clearTimeout(idleId);
+      }
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointerdown', enableToaster);
-      document.removeEventListener('contextmenu', handleContextMenu, true);
-      document.removeEventListener('copy', handleCopy, true);
-      document.removeEventListener('cut', handleCut, true);
+      document.removeEventListener('copy', handleCopyOrCut, true);
+      document.removeEventListener('cut', handleCopyOrCut, true);
       document.removeEventListener('selectstart', handleSelectStart, true);
       document.removeEventListener('dragstart', handleDragStart, true);
-      window.removeEventListener('keydown', handleKeyDown, true);
-      document.removeEventListener('keydown', handleKeyDown, true);
-      window.removeEventListener('keyup', handleKeyUp, true);
     };
   }, []);
 
@@ -237,11 +153,15 @@ export default function App() {
     <LazyMotion features={domAnimation} strict>
       <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
         <Preloader />
-        <ScreenShieldOverlay />
+        {mountShield && (
+          <Suspense fallback={null}>
+            <ScreenShieldOverlay />
+          </Suspense>
+        )}
         <Header />
         <main>
           <Hero />
-          <DeferredSection id="about" rootMargin="0px">
+          <DeferredSection id="about" rootMargin="100px">
             <About />
           </DeferredSection>
           <DeferredSection id="education">
