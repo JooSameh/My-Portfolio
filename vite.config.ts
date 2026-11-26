@@ -33,7 +33,6 @@ function apiPlugin() {
   return {
     name: 'api-middleware',
     configureServer(server: any) {
-      // 0. Global Security Headers (Anti-Clickjacking, MIME-Sniffing, XSS & Permissions)
       server.middlewares.use((_req: any, res: any, next: any) => {
         res.setHeader('X-Frame-Options', 'SAMEORIGIN');
         res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -44,9 +43,7 @@ function apiPlugin() {
       });
 
       server.middlewares.use((req: any, res: any, next: any) => {
-        // Explicit route match for /api/contact
         if (req.url === '/api/contact' || req.url?.startsWith('/api/contact?')) {
-          // A. Method Enforcement (Broken Access Control & Method Spoofing)
           if (req.method !== 'POST') {
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Allow', 'POST');
@@ -55,7 +52,6 @@ function apiPlugin() {
             return;
           }
 
-          // B. Content-Type Enforcement (Anti-CSRF & Simple Request Bypass Prevention)
           const contentType = req.headers['content-type'] || '';
           if (!contentType.toLowerCase().includes('application/json')) {
             res.setHeader('Content-Type', 'application/json');
@@ -66,7 +62,6 @@ function apiPlugin() {
 
           const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket?.remoteAddress || '127.0.0.1'
 
-          // 1. Rate Limiting Check (Anti-DoS)
           if (!checkRateLimit(clientIp)) {
             res.setHeader('Content-Type', 'application/json')
             res.statusCode = 429
@@ -74,7 +69,6 @@ function apiPlugin() {
             return
           }
 
-          // 2. Content-Length Header Check
           const contentLength = parseInt(req.headers['content-length'] || '0', 10)
           if (contentLength > MAX_PAYLOAD_BYTES) {
             res.setHeader('Content-Type', 'application/json')
@@ -90,7 +84,7 @@ function apiPlugin() {
             body += chunk
             if (body.length > MAX_PAYLOAD_BYTES) {
               isTooLarge = true
-              req.destroy() // Stop reading to protect server resources
+              req.destroy()
             }
           })
 
@@ -104,8 +98,6 @@ function apiPlugin() {
 
             try {
               const data = JSON.parse(body || '{}')
-
-              // 3. Strict Zod Schema Validation
               const result = ContactSchema.safeParse(data)
               if (!result.success) {
                 res.setHeader('Content-Type', 'application/json')
@@ -118,7 +110,6 @@ function apiPlugin() {
                 return
               }
 
-              // 4. Honeypot Bot Detection
               if (result.data.botField && result.data.botField.trim() !== '') {
                 console.warn('[Security Honeypot] Bot submission blocked silently.')
                 res.setHeader('Content-Type', 'application/json')
@@ -127,7 +118,6 @@ function apiPlugin() {
                 return
               }
 
-              // 5. HTML & CRLF Injection Sanitization
               const stripCRLF = (v: string) => v.replace(/[\r\n]+/g, ' ').trim()
               const stripHTML = (v: string) => v.replace(/<[^>]*>?/gm, '').trim()
               const safePayload = {
@@ -193,6 +183,20 @@ export default defineConfig({
   ],
   build: {
     sourcemap: false,
+    target: 'es2022',
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            return 'vendor';
+          }
+        },
+      },
+    },
   },
   server: {
     host: '0.0.0.0',
