@@ -1,11 +1,12 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { Preloader } from './components/Preloader';
-import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
+const ScreenShieldOverlay = lazy(() =>
+  import('./components/ScreenShieldOverlay').then((m) => ({ default: m.ScreenShieldOverlay }))
+);
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
 const Education = lazy(() => import('./components/Education').then((m) => ({ default: m.Education })));
 const Experience = lazy(() => import('./components/Experience').then((m) => ({ default: m.Experience })));
@@ -79,11 +80,12 @@ function DeferredSection({
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mountToaster, setMountToaster] = useState(false);
+  const [mountShield, setMountShield] = useState(false);
 
   useEffect(() => {
-    // Ensure any lingering lock class is cleared
     document.documentElement.classList.remove('cyber-shield-locked');
 
+    const shieldTimer = setTimeout(() => setMountShield(true), 400);
     const enableToaster = () => setMountToaster(true);
 
     const handleScroll = () => {
@@ -91,7 +93,6 @@ export default function App() {
       setMountToaster(true);
     };
 
-    // 1. Prevent Right-Click on the entire website except within form inputs
     const handleContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -102,7 +103,6 @@ export default function App() {
 
     const POLICY_MESSAGE = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
 
-    // 2. Prevent copying text or assets and overwrite clipboard with policy message
     const handleCopy = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -112,7 +112,6 @@ export default function App() {
       }
     };
 
-    // 3. Prevent cutting text
     const handleCut = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -122,7 +121,6 @@ export default function App() {
       }
     };
 
-    // 4. Prevent text selection
     const handleSelectStart = (e: Event) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -131,12 +129,10 @@ export default function App() {
       }
     };
 
-    // 5. Prevent dragging images or text
     const handleDragStart = (e: DragEvent) => {
       e.preventDefault();
     };
 
-    // 6. Block copy shortcuts, view-source (Ctrl+U), DevTools (F12 / Ctrl+Shift+I/J/C/K), and save/print
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA';
@@ -150,13 +146,11 @@ export default function App() {
         e.stopPropagation();
       };
 
-      // F12 (DevTools)
       if (code === 'F12' || keyLower === 'f12' || kc === 123) {
         blockEvent();
         return;
       }
 
-      // View Source (Ctrl/Cmd + U), Save Page (Ctrl/Cmd + S), Print (Ctrl/Cmd + P)
       if (
         isCtrlOrMeta &&
         (code === 'KeyU' || kc === 85 || keyLower === 'u' ||
@@ -167,7 +161,6 @@ export default function App() {
         return;
       }
 
-      // DevTools Inspect / Console / Element Picker
       if (
         isCtrlOrMeta &&
         (e.shiftKey || e.altKey) &&
@@ -181,7 +174,6 @@ export default function App() {
         return;
       }
 
-      // Copy & Select-all outside form inputs (works in Arabic & English keyboard layouts)
       if (
         isCtrlOrMeta &&
         !isInput &&
@@ -193,7 +185,6 @@ export default function App() {
         return;
       }
 
-      // PrintScreen clipboard protection
       if (e.key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
         blockEvent();
         try {
@@ -228,6 +219,7 @@ export default function App() {
     window.addEventListener('keyup', handleKeyUp, true);
 
     return () => {
+      clearTimeout(shieldTimer);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointerdown', enableToaster);
       document.removeEventListener('contextmenu', handleContextMenu, true);
@@ -248,8 +240,11 @@ export default function App() {
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
-        <Preloader />
-        <ScreenShieldOverlay />
+        {mountShield && (
+          <Suspense fallback={null}>
+            <ScreenShieldOverlay />
+          </Suspense>
+        )}
         <Header />
         <main>
           <Hero />
@@ -279,7 +274,6 @@ export default function App() {
           <Footer />
         </DeferredSection>
 
-        {/* Scroll to Top Button */}
         {showScrollTop && (
           <button
             onClick={scrollToTop}
