@@ -35,6 +35,7 @@ export const ContactSchema = z.object({
 const MAX_PAYLOAD_BYTES = 10 * 1024 // 10 KB limit
 const RATE_LIMIT_WINDOW_MS = 60 * 1000 // 1 minute window
 const MAX_REQUESTS_PER_WINDOW = 3 // Max 3 messages per minute per IP
+const UPSTREAM_TIMEOUT_MS = 8000 // 8 seconds timeout for Web3Forms
 
 // 3. Sanitizers (HTML Tag Stripping & CRLF Email Header Injection Prevention)
 const stripCRLF = (val: string) => val.replace(/[\r\n]+/g, ' ').trim()
@@ -59,7 +60,7 @@ function isOriginAllowed(origin: string | undefined, referer: string | undefined
   return isExactOriginAllowed(referer)
 }
 
-// 5. Rate Limiter (Upstash Redis REST API with In-Memory Sliding Window fallback)
+// 5. Atomic Rate Limiter (Upstash Redis Pipeline with In-Memory Sliding Window fallback)
 const ipRequestHistory = new Map<string, number[]>()
 
 export async function isRateLimited(clientIp: string): Promise<boolean> {
@@ -69,19 +70,25 @@ export async function isRateLimited(clientIp: string): Promise<boolean> {
   if (upstashUrl && upstashToken) {
     try {
       const key = `rl:contact:${clientIp}`
-      const incrRes = await fetch(`${upstashUrl}/incr/${encodeURIComponent(key)}`, {
+      const pipelineRes = await fetch(`${upstashUrl}/pipeline`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${upstashToken}` },
+        headers: {
+          Authorization: `Bearer ${upstashToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([
+          ['INCR', key],
+          ['EXPIRE', key, 60, 'NX'],
+        ]),
+        signal: AbortSignal.timeout(3000),
       })
-      if (incrRes.ok) {
-        const { result: count } = (await incrRes.json()) as { result: number }
-        if (count === 1) {
-          await fetch(`${upstashUrl}/expire/${encodeURIComponent(key)}/60`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${upstashToken}` },
-          })
+
+      if (pipelineRes.ok) {
+        const results = (await pipelineRes.json()) as Array<{ result?: number }>
+        const count = results?.[0]?.result
+        if (typeof count === 'number') {
+          return count > MAX_REQUESTS_PER_WINDOW
         }
-        return count > MAX_REQUESTS_PER_WINDOW
       }
     } catch {
       // Fallback safely to in-memory limiter if Upstash is temporarily unreachable
@@ -252,6 +259,7 @@ const handleContact = async (c: any) => {
         subject: safeSubject,
         message: safeMessage,
       }),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     })
 
     const upstreamData = (await upstreamRes.json()) as { success?: boolean; message?: string }
@@ -267,7 +275,10 @@ const handleContact = async (c: any) => {
       success: true,
       message: 'Message received safely.',
     })
-  } catch {
+  } catch (err: any) {
+    if (err?.name === 'TimeoutError' || err?.name === 'AbortError') {
+      return c.json({ success: false, error: 'Mail service timed out.' }, 504)
+    }
     return c.json({ success: false, error: 'Failed to deliver message.' }, 502)
   }
 }
