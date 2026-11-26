@@ -4,6 +4,17 @@ import {
 } from 'lucide-react';
 import { m } from 'motion/react';
 
+const FLOATING_SHAPES = [
+  { left: '12%', top: '18%', xOffset: 8, duration: 9, delay: 0.2, isRound: true },
+  { left: '84%', top: '22%', xOffset: -7, duration: 11, delay: 0.8, isRound: false },
+  { left: '25%', top: '76%', xOffset: 6, duration: 10, delay: 1.4, isRound: true },
+  { left: '72%', top: '68%', xOffset: -9, duration: 12, delay: 0.5, isRound: false },
+  { left: '48%', top: '14%', xOffset: 5, duration: 8.5, delay: 1.1, isRound: true },
+  { left: '15%', top: '52%', xOffset: -6, duration: 13, delay: 1.7, isRound: false },
+  { left: '88%', top: '48%', xOffset: 7, duration: 9.5, delay: 0.4, isRound: true },
+  { left: '58%', top: '82%', xOffset: -8, duration: 11.5, delay: 1.9, isRound: false },
+];
+
 export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [profileImage] = useState<string>(() => {
@@ -27,7 +38,7 @@ export function Hero() {
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
@@ -38,9 +49,9 @@ export function Hero() {
     }
   };
 
-  // Cyberpunk matrix & binary decorative symbols
   const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
   const binaryChars = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
+  const isDefaultProfile = profileImage === '/profile.webp';
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -96,24 +107,24 @@ export function Hero() {
         </div>
 
         {/* Floating geometric shapes */}
-        {Array.from({ length: 8 }).map((_, i) => (
+        {FLOATING_SHAPES.map((shape, i) => (
           <m.div
             key={i}
             className="absolute"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: shape.left,
+              top: shape.top,
             }}
             animate={{
               y: [0, -30, 0],
-              x: [0, Math.random() * 20 - 10, 0],
+              x: [0, shape.xOffset, 0],
               rotate: [0, 360],
               scale: [1, 1.2, 1],
             }}
             transition={{
-              duration: Math.random() * 6 + 8,
+              duration: shape.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: shape.delay,
               ease: "easeInOut"
             }}
           >
@@ -122,7 +133,7 @@ export function Hero() {
                 i % 3 === 0 ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40' :
                 i % 3 === 1 ? 'bg-[#39FF14]/20 border-[#39FF14]/40' :
                 'bg-[#B026FF]/20 border-[#B026FF]/40'
-              } border ${Math.random() > 0.5 ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+              } border ${shape.isRound ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
             />
           </m.div>
         ))}
@@ -406,10 +417,12 @@ export function Hero() {
 
                    {/* Profile Image with Touch & Right-Click Shield */}
                    <img
-                     src={profileImage}
+                     src={isDefaultProfile ? '/profile-sm.webp' : profileImage}
+                     srcSet={isDefaultProfile ? '/profile-sm.webp 300w, /profile.webp 480w' : undefined}
+                     sizes={isDefaultProfile ? '(max-width: 640px) 240px, 288px' : undefined}
                      alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
-                     width={480}
-                     height={640}
+                     width={288}
+                     height={384}
                      {...{ fetchpriority: 'high' }}
                      draggable={false}
                      onContextMenu={(e) => e.preventDefault()}
