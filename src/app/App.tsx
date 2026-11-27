@@ -22,11 +22,13 @@ function DeferredSection({
   id,
   minHeight = 'min-h-[800px]',
   rootMargin = '150px',
+  threshold = 0.05,
   children,
 }: {
   id?: string;
   minHeight?: string;
   rootMargin?: string;
+  threshold?: number;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ function DeferredSection({
           observer.disconnect();
         }
       },
-      { rootMargin, threshold: 0.01 }
+      { rootMargin, threshold }
     );
 
     observer.observe(el);
@@ -65,7 +67,7 @@ function DeferredSection({
       observer.disconnect();
       window.removeEventListener('hashchange', onHashChange);
     };
-  }, [id, rootMargin, shouldLoad]);
+  }, [id, rootMargin, threshold, shouldLoad]);
 
   return (
     <div id={id} ref={ref} className={shouldLoad ? undefined : minHeight}>
@@ -86,11 +88,23 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.remove('cyber-shield-locked');
 
-    // Mount shield right after initial paint to keep FCP/TBT at 100%
-    const idleId =
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(() => setMountShield(true), { timeout: 300 })
-        : window.setTimeout(() => setMountShield(true), 150);
+    const activateShield = () => {
+      setMountShield(true);
+      clearTimeout(shieldTimer);
+      window.removeEventListener('pointermove', activateShield);
+      window.removeEventListener('pointerdown', activateShield);
+      window.removeEventListener('touchstart', activateShield);
+      window.removeEventListener('keydown', activateShield, true);
+      window.removeEventListener('contextmenu', activateShield, true);
+    };
+
+    const shieldTimer = window.setTimeout(activateShield, 2000);
+
+    window.addEventListener('pointermove', activateShield, { once: true, passive: true });
+    window.addEventListener('pointerdown', activateShield, { once: true, passive: true });
+    window.addEventListener('touchstart', activateShield, { once: true, passive: true });
+    window.addEventListener('keydown', activateShield, { once: true, capture: true });
+    window.addEventListener('contextmenu', activateShield, { once: true, capture: true });
 
     const enableToaster = () => setMountToaster(true);
 
@@ -131,11 +145,12 @@ export default function App() {
     document.addEventListener('dragstart', handleDragStart, true);
 
     return () => {
-      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
-        window.cancelIdleCallback(idleId);
-      } else {
-        clearTimeout(idleId);
-      }
+      clearTimeout(shieldTimer);
+      window.removeEventListener('pointermove', activateShield);
+      window.removeEventListener('pointerdown', activateShield);
+      window.removeEventListener('touchstart', activateShield);
+      window.removeEventListener('keydown', activateShield, true);
+      window.removeEventListener('contextmenu', activateShield, true);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointerdown', enableToaster);
       document.removeEventListener('copy', handleCopyOrCut, true);
@@ -161,7 +176,7 @@ export default function App() {
         <Header />
         <main>
           <Hero />
-          <DeferredSection id="about" rootMargin="100px">
+          <DeferredSection id="about" rootMargin="0px" threshold={0.05}>
             <About />
           </DeferredSection>
           <DeferredSection id="education">
