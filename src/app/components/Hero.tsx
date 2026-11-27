@@ -59,6 +59,8 @@ const TECH_ICONS = [
 export function Hero() {
   const glowRef = useRef<HTMLDivElement>(null);
   const avatarTiltRef = useRef<HTMLDivElement>(null);
+  const bgParallaxRef = useRef<HTMLDivElement>(null);
+  const orbsParallaxRef = useRef<HTMLDivElement>(null);
   const [showBgEffects, setShowBgEffects] = useState(false);
 
   const [profileImage] = useState<string>(() => {
@@ -93,10 +95,17 @@ export function Hero() {
 
       const normX = (clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
       const normY = (clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+
       const rotateY = normX * 8;
       const rotateX = -normY * 6;
       const shiftX = normX * 10;
       const shiftY = normY * 8;
+
+      const shapesX = -normX * 22;
+      const shapesY = -normY * 18;
+
+      const orbsX = -normX * 32;
+      const orbsY = -normY * 24;
 
       rafId = requestAnimationFrame(() => {
         if (glowRef.current) {
@@ -105,6 +114,12 @@ export function Hero() {
         if (avatarTiltRef.current) {
           avatarTiltRef.current.style.transform = `translate3d(${shiftX}px, ${shiftY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         }
+        if (bgParallaxRef.current) {
+          bgParallaxRef.current.style.transform = `translate3d(${shapesX}px, ${shapesY}px, 0)`;
+        }
+        if (orbsParallaxRef.current) {
+          orbsParallaxRef.current.style.transform = `translate3d(${orbsX}px, ${orbsY}px, 0)`;
+        }
         rafId = 0;
       });
     };
@@ -112,6 +127,12 @@ export function Hero() {
     const handleMouseLeave = () => {
       if (avatarTiltRef.current) {
         avatarTiltRef.current.style.transform = 'translate3d(0px, 0px, 0) rotateX(0deg) rotateY(0deg)';
+      }
+      if (bgParallaxRef.current) {
+        bgParallaxRef.current.style.transform = 'translate3d(0px, 0px, 0)';
+      }
+      if (orbsParallaxRef.current) {
+        orbsParallaxRef.current.style.transform = 'translate3d(0px, 0px, 0)';
       }
     };
 
@@ -189,80 +210,89 @@ export function Hero() {
               ))}
             </div>
 
-            {/* Floating geometric shapes */}
-            {FLOATING_SHAPES.map((shape, i) => (
+            {/* Mouse-reactive floating geometric shapes (circles & rounded squares) */}
+            <div
+              ref={bgParallaxRef}
+              className="absolute inset-0 pointer-events-none transition-transform duration-200 ease-out will-change-transform"
+              aria-hidden="true"
+            >
+              {FLOATING_SHAPES.map((shape, i) => (
+                <m.div
+                  key={i}
+                  className="absolute will-change-transform"
+                  style={{ left: shape.left, top: shape.top }}
+                  animate={{
+                    y: [0, -30, 0],
+                    x: [0, shape.x, 0],
+                    rotate: [0, 360],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: shape.duration,
+                    repeat: Infinity,
+                    delay: shape.delay,
+                    ease: 'easeInOut',
+                  }}
+                >
+                  <div
+                    className={`w-4 h-4 ${
+                      i % 3 === 0
+                        ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40'
+                        : i % 3 === 1
+                        ? 'bg-[#39FF14]/20 border-[#39FF14]/40'
+                        : 'bg-[#B026FF]/20 border-[#B026FF]/40'
+                    } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+                  />
+                </m.div>
+              ))}
+            </div>
+
+            {/* Mouse-reactive large glowing orbs */}
+            <div
+              ref={orbsParallaxRef}
+              className="absolute inset-0 pointer-events-none transition-transform duration-300 ease-out will-change-transform"
+              aria-hidden="true"
+            >
               <m.div
-                key={i}
-                aria-hidden="true"
-                className="absolute will-change-transform"
-                style={{ left: shape.left, top: shape.top }}
+                className="absolute w-[500px] h-[500px] rounded-full opacity-30 will-change-transform"
+                style={{
+                  left: '5%',
+                  top: '10%',
+                  background:
+                    'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
+                  filter: 'blur(40px)',
+                }}
                 animate={{
-                  y: [0, -30, 0],
-                  x: [0, shape.x, 0],
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
+                  scale: [1, 1.3, 1],
+                  opacity: [0.2, 0.4, 0.2],
                 }}
                 transition={{
-                  duration: shape.duration,
+                  duration: 6,
                   repeat: Infinity,
-                  delay: shape.delay,
                   ease: 'easeInOut',
                 }}
-              >
-                <div
-                  className={`w-4 h-4 ${
-                    i % 3 === 0
-                      ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40'
-                      : i % 3 === 1
-                      ? 'bg-[#39FF14]/20 border-[#39FF14]/40'
-                      : 'bg-[#B026FF]/20 border-[#B026FF]/40'
-                  } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
-                />
-              </m.div>
-            ))}
-
-            {/* Large glowing orbs */}
-            <m.div
-              aria-hidden="true"
-              className="absolute w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none will-change-transform"
-              style={{
-                left: '5%',
-                top: '10%',
-                background:
-                  'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
-                filter: 'blur(40px)',
-              }}
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.2, 0.4, 0.2],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-            <m.div
-              aria-hidden="true"
-              className="absolute w-[400px] h-[400px] rounded-full opacity-20 pointer-events-none will-change-transform"
-              style={{
-                right: '5%',
-                bottom: '10%',
-                background:
-                  'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
-                filter: 'blur(30px)',
-              }}
-              animate={{
-                scale: [1.2, 1, 1.2],
-                opacity: [0.15, 0.3, 0.15],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: 1,
-              }}
-            />
+              />
+              <m.div
+                className="absolute w-[400px] h-[400px] rounded-full opacity-20 will-change-transform"
+                style={{
+                  right: '5%',
+                  bottom: '10%',
+                  background:
+                    'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
+                  filter: 'blur(30px)',
+                }}
+                animate={{
+                  scale: [1.2, 1, 1.2],
+                  opacity: [0.15, 0.3, 0.15],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 1,
+                }}
+              />
+            </div>
           </>
         )}
       </div>
