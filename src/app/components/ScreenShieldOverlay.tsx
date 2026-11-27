@@ -1,260 +1,137 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { ShieldAlert, EyeOff, Terminal, CheckCircle2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ShieldAlert, Terminal, Lock } from 'lucide-react';
 
-type TriggerReason = 'shortcut' | 'contextmenu' | 'multitouch' | 'recording_blocked';
+const POLICY_MESSAGE =
+  'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
+
+function silentOverwriteClipboard(text: string) {
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    textarea.style.left = '-9999px';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    textarea.setSelectionRange(0, text.length);
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  } catch {
+    // Fallback ignored to avoid browser permission prompts
+  }
+}
 
 export function ScreenShieldOverlay() {
-  const [isShieldActive, setIsShieldActive] = useState(false);
-  const [triggerReason, setTriggerReason] = useState<TriggerReason>('shortcut');
-
-  const isLockedRef = useRef(false);
-  const lockTimestampRef = useRef<number>(0);
-
-  const overwriteClipboard = useCallback(() => {
-    const policyText = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
-
-    const writePolicy = () => {
-      try {
-        const tempArea = document.createElement('textarea');
-        tempArea.value = policyText;
-        tempArea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
-        document.body.appendChild(tempArea);
-        tempArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempArea);
-      } catch {}
-
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(policyText).catch(() => {});
-        }
-      } catch {}
-    };
-
-    writePolicy();
-    window.setTimeout(writePolicy, 100);
-  }, []);
-
-  const restoreDisplay = useCallback(() => {
-    isLockedRef.current = false;
-    document.documentElement.classList.remove('cyber-shield-locked');
-    setIsShieldActive(false);
-  }, []);
-
-  const engageShield = useCallback((reason: TriggerReason) => {
-    document.documentElement.classList.add('cyber-shield-locked');
-    isLockedRef.current = true;
-    lockTimestampRef.current = performance.now();
-    setTriggerReason(reason);
-    setIsShieldActive(true);
-  }, []);
+  const [locked, setLocked] = useState(false);
+  const [vector, setVector] = useState('SHORTCUT');
 
   useEffect(() => {
-    const origGetDisplayMedia = navigator.mediaDevices?.getDisplayMedia?.bind(navigator.mediaDevices);
-    const origCaptureStream =
-      typeof HTMLCanvasElement !== 'undefined' ? HTMLCanvasElement.prototype.captureStream : undefined;
+    const triggerShield = (reason: string) => {
+      setVector(reason);
+      setLocked(true);
+      document.documentElement.classList.add('cyber-shield-locked');
+      silentOverwriteClipboard(POLICY_MESSAGE);
+    };
 
-    try {
-      if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
-        navigator.mediaDevices.getDisplayMedia = async () => {
-          engageShield('recording_blocked');
-          overwriteClipboard();
-          throw new DOMException('Screen recording is disabled by security policy.', 'NotAllowedError');
-        };
-      }
-      if (origCaptureStream) {
-        HTMLCanvasElement.prototype.captureStream = () => {
-          engageShield('recording_blocked');
-          throw new DOMException('Canvas stream capture is disabled by security policy.', 'NotAllowedError');
-        };
-      }
-    } catch {}
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key?.toLowerCase();
+      const isPrintScreen = e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44;
+      const isDevTools =
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
+        (e.metaKey && e.altKey && (key === 'i' || key === 'j' || key === 'c'));
+      const isSourceOrSave =
+        (e.ctrlKey || e.metaKey) && (key === 'u' || key === 's' || key === 'p');
+      const isWinSnip = (e.metaKey || e.ctrlKey) && e.shiftKey && key === 's';
 
-    const isEditable = (target: EventTarget | null) => {
-      const el = target as HTMLElement | null;
-      return el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable;
+      if (isPrintScreen || isDevTools || isSourceOrSave || isWinSnip) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerShield(isPrintScreen || isWinSnip ? 'SCREEN_CAPTURE' : 'DEVTOOLS_SHORTCUT');
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44) {
+        e.preventDefault();
+        triggerShield('SCREEN_CAPTURE');
+      }
     };
 
     const handleContextMenu = (e: MouseEvent) => {
-      if (!isEditable(e.target)) {
-        e.preventDefault();
-        engageShield('contextmenu');
-      }
+      e.preventDefault();
+      triggerShield('CONTEXT_MENU');
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length >= 3) {
-        engageShield('multitouch');
-        overwriteClipboard();
-      }
+    const handleWindowBlur = () => {
+      // Locks screen immediately when Windows Snipping Tool overlay takes focus
+      triggerShield('FOCUS_LOST / SNIPPING_TOOL');
     };
 
-    const isActiveCaptureOrInspectKey = (e: KeyboardEvent) => {
-      const key = e.key || '';
-      const code = e.code || '';
-      const keyLower = key.toLowerCase();
-      const kc = e.keyCode || e.which;
-      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
-
-      if (key === 'PrintScreen' || code === 'PrintScreen' || kc === 44) {
-        return true;
-      }
-
-      if (code === 'F12' || keyLower === 'f12' || kc === 123) {
-        return true;
-      }
-
-      if (
-        isCtrlOrMeta &&
-        (e.shiftKey || e.altKey) &&
-        (code === 'KeyI' || kc === 73 || keyLower === 'i' ||
-         code === 'KeyJ' || kc === 74 || keyLower === 'j' ||
-         code === 'KeyC' || kc === 67 || keyLower === 'c' ||
-         code === 'KeyK' || kc === 75 || keyLower === 'k' ||
-         code === 'KeyU' || kc === 85 || keyLower === 'u')
-      ) {
-        return true;
-      }
-
-      if (
-        isCtrlOrMeta &&
-        (code === 'KeyU' || kc === 85 || keyLower === 'u' ||
-         code === 'KeyS' || kc === 83 || keyLower === 's' ||
-         code === 'KeyP' || kc === 80 || keyLower === 'p')
-      ) {
-        return true;
-      }
-
-      if (
-        e.metaKey &&
-        ((e.shiftKey && (code === 'KeyS' || kc === 83 || code === 'Digit3' || code === 'Digit4' || code === 'Digit5')) ||
-         code === 'KeyG' || kc === 71 ||
-         (e.altKey && (code === 'KeyR' || kc === 82)))
-      ) {
-        return true;
-      }
-
-      return false;
-    };
-
-    const handleKeyIntercept = (e: KeyboardEvent) => {
-      if (isActiveCaptureOrInspectKey(e)) {
-        e.preventDefault();
-        e.stopPropagation();
-        engageShield('shortcut');
-        overwriteClipboard();
-        return;
-      }
-
-      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
-      const code = e.code || '';
-      const keyLower = (e.key || '').toLowerCase();
-      const kc = e.keyCode || e.which;
-
-      if (
-        isCtrlOrMeta &&
-        !isEditable(e.target) &&
-        (code === 'KeyC' || kc === 67 || keyLower === 'c' ||
-         code === 'KeyA' || kc === 65 || keyLower === 'a' ||
-         code === 'KeyX' || kc === 88 || keyLower === 'x')
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    const handleRestoreGesture = () => {
-      if (!isLockedRef.current) return;
-      if (performance.now() - lockTimestampRef.current < 250) return;
-      restoreDisplay();
-    };
-
+    window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('keyup', handleKeyUp, true);
     document.addEventListener('contextmenu', handleContextMenu, true);
-    window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-    window.addEventListener('keydown', handleKeyIntercept, true);
-    window.addEventListener('keyup', handleKeyIntercept, true);
-    window.addEventListener('wheel', handleRestoreGesture, { passive: true });
-    window.addEventListener('pointerdown', handleRestoreGesture, { passive: true });
+    window.addEventListener('blur', handleWindowBlur);
 
     return () => {
-      document.documentElement.classList.remove('cyber-shield-locked');
+      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('keyup', handleKeyUp, true);
       document.removeEventListener('contextmenu', handleContextMenu, true);
-      window.removeEventListener('touchstart', handleTouchStart, true);
-      window.removeEventListener('keydown', handleKeyIntercept, true);
-      window.removeEventListener('keyup', handleKeyIntercept, true);
-      window.removeEventListener('wheel', handleRestoreGesture);
-      window.removeEventListener('pointerdown', handleRestoreGesture);
-
-      try {
-        if (origGetDisplayMedia && navigator.mediaDevices) {
-          navigator.mediaDevices.getDisplayMedia = origGetDisplayMedia;
-        }
-        if (origCaptureStream && typeof HTMLCanvasElement !== 'undefined') {
-          HTMLCanvasElement.prototype.captureStream = origCaptureStream;
-        }
-      } catch {}
+      window.removeEventListener('blur', handleWindowBlur);
     };
-  }, [engageShield, restoreDisplay, overwriteClipboard]);
+  }, []);
 
-  const reasonMessage =
-    triggerReason === 'recording_blocked'
-      ? 'Browser screen recording stream intercepted and blocked by security policy.'
-      : triggerReason === 'contextmenu'
-      ? 'Right-click inspection is disabled to protect portfolio credentials and assets.'
-      : triggerReason === 'multitouch'
-      ? '3-finger capture gesture intercepted. Display obscured to protect portfolio assets.'
-      : 'Active capture or DevTools shortcut intercepted (PrintScreen / F12 / DevTools / View Source).';
+  const unlockShield = () => {
+    setLocked(false);
+    document.documentElement.classList.remove('cyber-shield-locked');
+  };
 
-  if (!isShieldActive) return null;
+  if (!locked) return null;
 
   return (
     <div
-      onClick={restoreDisplay}
-      onTouchStart={restoreDisplay}
-      className="fixed inset-0 z-[99999] bg-[#050811] flex items-center justify-center p-4 select-none cursor-pointer"
+      onClick={unlockShield}
+      onWheel={unlockShield}
+      onTouchStart={unlockShield}
+      className="fixed inset-0 z-[99999] bg-[#060911]/98 backdrop-blur-2xl flex items-center justify-center p-4 select-none cursor-pointer"
     >
-      {/* Cyberpunk Animated Matrix Grid */}
-      <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none" />
-
-      {/* Central Shield Card */}
-      <div className="relative max-w-lg w-full glass-strong p-8 rounded-2xl border border-[#00F5FF]/50 text-center shadow-[0_0_80px_rgba(0,245,255,0.25)] overflow-hidden">
-        {/* Holographic Glowing Scanner Ring */}
-        <div className="w-20 h-20 mx-auto mb-5 rounded-2xl glass-strong border-2 border-[#00F5FF] flex items-center justify-center relative shadow-[0_0_35px_rgba(0,245,255,0.35)]">
-          <ShieldAlert size={40} className="text-[#00F5FF]" />
+      <div className="max-w-lg w-full glass-strong border border-[#00F5FF]/40 rounded-2xl p-8 text-center space-y-6 shadow-[0_0_60px_rgba(0,245,255,0.2)]">
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/40 flex items-center justify-center shadow-[0_0_25px_rgba(0,245,255,0.25)]">
+          <ShieldAlert className="w-8 h-8 text-[#00F5FF]" />
         </div>
 
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#00F5FF]/40 bg-[#00F5FF]/10 text-xs fira-code text-[#00F5FF] mb-4">
-          <EyeOff size={14} className="text-[#39FF14]" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#39FF14]/10 border border-[#39FF14]/30 text-[#39FF14] text-xs fira-code">
+          <Lock className="w-3.5 h-3.5" />
           <span>ACTIVE DEFENSE SHIELD • DISPLAY PROTECTED</span>
         </div>
 
-        <h3 className="text-2xl font-bold text-white orbitron mb-3 tracking-wide">
-          SECURITY SHIELD <span className="neon-text-blue">ACTIVE</span>
-        </h3>
+        <div className="space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-bold orbitron text-white tracking-wider">
+            SECURITY SHIELD <span className="text-[#00F5FF]">ACTIVE</span>
+          </h2>
+          <p className="text-sm text-[#94A3B8] fira-code">
+            Active capture or DevTools shortcut intercepted (PrintScreen / F12 / DevTools / View Source).
+          </p>
+        </div>
 
-        <p className="text-gray-300 text-sm leading-relaxed mb-6 fira-code">
-          {reasonMessage}
+        <div className="bg-[#0A0F1C] border border-white/10 rounded-xl p-4 text-left fira-code text-xs space-y-1.5">
+          <div className="flex items-center gap-2 text-[#00F5FF]">
+            <Terminal className="w-3.5 h-3.5" />
+            <span>&gt;_ ACTIVE CYBER SHIELD (YOUSSEF EL-GENDY)</span>
+          </div>
+          <div className="text-gray-400">
+            &gt; TRIGGER_VECTOR: <span className="text-[#39FF14]">{vector}</span>
+          </div>
+          <div className="text-gray-400">
+            &gt; CLIPBOARD_POLICY: <span className="text-[#39FF14]">ENFORCED (NO PROMPT)</span>
+          </div>
+        </div>
+
+        <p className="text-xs text-[#39FF14] fira-code">
+          Click, tap, or scroll to resume browsing immediately
         </p>
-
-        {/* Terminal status box */}
-        <div className="bg-[#03050a] p-3 rounded-lg border border-white/10 text-xs text-left fira-code text-gray-400 mb-4 space-y-1">
-          <div className="flex items-center gap-1.5 text-[#00F5FF]">
-            <Terminal size={13} />
-            <span>ACTIVE CYBER SHIELD (YOUSSEF EL-GENDY)</span>
-          </div>
-          <div className="text-gray-500">
-            &gt; TRIGGER_VECTOR: <span className="text-[#39FF14]">{triggerReason.toUpperCase()}</span>
-          </div>
-          <div className="text-gray-500">
-            &gt; TAB_SWITCH_SAFE: <span className="text-[#00F5FF]">ENABLED (ZERO FALSE LOCKS)</span>
-          </div>
-        </div>
-
-        <div className="inline-flex items-center gap-2 text-xs text-[#39FF14] fira-code">
-          <CheckCircle2 size={14} />
-          <span>Click, tap, or scroll to resume browsing immediately</span>
-        </div>
       </div>
     </div>
   );
