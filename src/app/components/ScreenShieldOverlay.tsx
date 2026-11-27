@@ -1,43 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ShieldAlert, Terminal, Lock } from 'lucide-react';
 
 const POLICY_MESSAGE =
   'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
 
-function silentOverwriteClipboard(text: string) {
+function copyViaExecCommand(text: string): boolean {
   try {
     const textarea = document.createElement('textarea');
     textarea.value = text;
-    textarea.setAttribute('readonly', '');
     textarea.style.position = 'fixed';
     textarea.style.top = '-9999px';
     textarea.style.left = '-9999px';
     textarea.style.opacity = '0';
     document.body.appendChild(textarea);
+    textarea.focus();
     textarea.select();
     textarea.setSelectionRange(0, text.length);
-    document.execCommand('copy');
+    const ok = document.execCommand('copy');
     document.body.removeChild(textarea);
+    return ok;
   } catch {
-    // Fallback ignored to avoid browser permission prompts
+    return false;
+  }
+}
+
+function writePolicyToClipboard() {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(POLICY_MESSAGE).catch(() => {
+      copyViaExecCommand(POLICY_MESSAGE);
+    });
+  } else {
+    copyViaExecCommand(POLICY_MESSAGE);
   }
 }
 
 export function ScreenShieldOverlay() {
   const [locked, setLocked] = useState(false);
   const [vector, setVector] = useState('SHORTCUT');
+  const timersRef = useRef<number[]>([]);
+
+  const enforceClipboardPolicy = () => {
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
+
+    // Write immediately + retry after Windows finishes writing the screenshot bitmap
+    writePolicyToClipboard();
+    timersRef.current.push(
+      window.setTimeout(writePolicyToClipboard, 80),
+      window.setTimeout(writePolicyToClipboard, 220)
+    );
+  };
 
   useEffect(() => {
     const triggerShield = (reason: string) => {
+      document.documentElement.classList.add('cyber-shield-locked');
       setVector(reason);
       setLocked(true);
-      document.documentElement.classList.add('cyber-shield-locked');
-      silentOverwriteClipboard(POLICY_MESSAGE);
+      enforceClipboardPolicy();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key?.toLowerCase();
-      const isPrintScreen = e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44;
+      const isPrintScreen =
+        e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44;
       const isDevTools =
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
@@ -49,7 +74,7 @@ export function ScreenShieldOverlay() {
       if (isPrintScreen || isDevTools || isSourceOrSave || isWinSnip) {
         e.preventDefault();
         e.stopPropagation();
-        triggerShield(isPrintScreen || isWinSnip ? 'SCREEN_CAPTURE' : 'DEVTOOLS_SHORTCUT');
+        triggerShield(isPrintScreen || isWinSnip ? 'SCREEN_CAPTURE' : 'SHORTCUT');
       }
     };
 
@@ -65,25 +90,22 @@ export function ScreenShieldOverlay() {
       triggerShield('CONTEXT_MENU');
     };
 
-    const handleWindowBlur = () => {
-      // Locks screen immediately when Windows Snipping Tool overlay takes focus
-      triggerShield('FOCUS_LOST / SNIPPING_TOOL');
-    };
-
     window.addEventListener('keydown', handleKeyDown, true);
     window.addEventListener('keyup', handleKeyUp, true);
     document.addEventListener('contextmenu', handleContextMenu, true);
-    window.addEventListener('blur', handleWindowBlur);
 
     return () => {
+      timersRef.current.forEach((id) => window.clearTimeout(id));
       window.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('keyup', handleKeyUp, true);
       document.removeEventListener('contextmenu', handleContextMenu, true);
-      window.removeEventListener('blur', handleWindowBlur);
     };
   }, []);
 
   const unlockShield = () => {
+    // Re-write on real user click/tap (works silently even in strict/Incognito mode)
+    copyViaExecCommand(POLICY_MESSAGE);
+    writePolicyToClipboard();
     setLocked(false);
     document.documentElement.classList.remove('cyber-shield-locked');
   };
@@ -125,7 +147,7 @@ export function ScreenShieldOverlay() {
             &gt; TRIGGER_VECTOR: <span className="text-[#39FF14]">{vector}</span>
           </div>
           <div className="text-gray-400">
-            &gt; CLIPBOARD_POLICY: <span className="text-[#39FF14]">ENFORCED (NO PROMPT)</span>
+            &gt; TAB_SWITCH_SAFE: <span className="text-[#39FF14]">ENABLED (ZERO FALSE LOCKS)</span>
           </div>
         </div>
 
