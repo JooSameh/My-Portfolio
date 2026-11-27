@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Shield, Code, Terminal, Lock, Zap, Eye } from 'lucide-react';
+import {
+  Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database, Binary, HardDrive
+} from 'lucide-react';
 import { m } from 'motion/react';
 
 const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
-const MATRIX_COLUMNS = Array.from({ length: 14 }, (_, i) => {
-  const chars = Array.from({ length: 14 }, (_, j) =>
+const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
+  const chars = Array.from({ length: 18 }, (_, j) =>
     i % 2 === 0
       ? MATRIX_CHARS[(i + j) % MATRIX_CHARS.length]
       : BINARY_CHARS[(i * 2 + j) % BINARY_CHARS.length]
@@ -14,20 +16,24 @@ const MATRIX_COLUMNS = Array.from({ length: 14 }, (_, i) => {
 
   return {
     id: i,
-    left: `${i * 7 + 2}%`,
-    fontSize: `${(i % 3) * 2 + 10}px`,
+    left: `${i * 4 + 1}%`,
+    fontSize: `${(i % 3) * 3 + 9}px`,
     color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8',
-    duration: `${(i % 4) + 4}s`,
-    delay: `${(i % 4) * 0.6}s`,
+    duration: (i % 4) + 3.5,
+    delay: (i % 5) * 0.7,
     text: chars,
   };
 });
 
 const FLOATING_SHAPES = [
-  { left: '12%', top: '18%', rounded: true, color: 'bg-[#00F5FF]/20 border-[#00F5FF]/40' },
-  { left: '84%', top: '24%', rounded: false, color: 'bg-[#39FF14]/20 border-[#39FF14]/40' },
-  { left: '28%', top: '76%', rounded: true, color: 'bg-[#B026FF]/20 border-[#B026FF]/40' },
-  { left: '72%', top: '68%', rounded: false, color: 'bg-[#00F5FF]/20 border-[#00F5FF]/40' },
+  { left: '12%', top: '18%', x: 8, duration: 9, delay: 0.2, rounded: true },
+  { left: '84%', top: '24%', x: -9, duration: 11, delay: 0.8, rounded: false },
+  { left: '28%', top: '76%', x: 6, duration: 10, delay: 1.4, rounded: true },
+  { left: '72%', top: '68%', x: -7, duration: 12, delay: 0.5, rounded: false },
+  { left: '48%', top: '14%', x: 9, duration: 8.5, delay: 1.1, rounded: true },
+  { left: '91%', top: '82%', x: -6, duration: 13, delay: 1.7, rounded: false },
+  { left: '8%', top: '56%', x: 7, duration: 9.5, delay: 0.4, rounded: false },
+  { left: '61%', top: '88%', x: -8, duration: 10.5, delay: 1.9, rounded: true },
 ];
 
 const STATS = [
@@ -39,8 +45,8 @@ const STATS = [
 const SKILL_TAGS = [
   { icon: Shield, label: 'Penetration Testing', color: '#00F5FF' },
   { icon: Lock, label: 'AI Development', color: '#39FF14' },
-  { icon: Terminal, label: 'Vulnerability Research', color: '#B026FF' },
-  { icon: Code, label: 'Public Speaking', color: '#FF073A' },
+  { icon: Binary, label: 'Vulnerability Research', color: '#B026FF' },
+  { icon: HardDrive, label: 'Public Speaking', color: '#FF073A' },
 ];
 
 const TECH_ICONS = [
@@ -48,6 +54,8 @@ const TECH_ICONS = [
   { icon: Lock, position: { bottom: '15%', left: '5%' }, color: '#39FF14' },
   { icon: Terminal, position: { top: '50%', right: '0%' }, color: '#B026FF' },
   { icon: Code, position: { bottom: '5%', right: '20%' }, color: '#FF073A' },
+  { icon: Database, position: { top: '25%', left: '0%' }, color: '#FFFF00' },
+  { icon: Cpu, position: { bottom: '35%', right: '5%' }, color: '#FF6B35' },
 ];
 
 export function Hero() {
@@ -72,15 +80,15 @@ export function Hero() {
   });
 
   useEffect(() => {
-    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 800);
+    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 600);
 
     const hasFinePointer = window.matchMedia?.('(pointer: fine)').matches;
     let rafId = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (rafId) return;
       const x = e.clientX - 192;
       const y = e.clientY - 192;
-      if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         if (glowRef.current) {
           glowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
@@ -111,8 +119,12 @@ export function Hero() {
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Dynamic Cyberpunk Background */}
       <div className="absolute inset-0">
+        {/* Base gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0A0F1C] via-[#0D1421] to-[#0A0F1C]" />
+
+        {/* Animated cyber grid */}
         <div className="absolute inset-0 cyber-grid opacity-20" />
 
         {/* Interactive cursor glow */}
@@ -122,53 +134,77 @@ export function Hero() {
           style={{
             transform: 'translate3d(-400px, -400px, 0)',
             background:
-              'radial-gradient(circle, rgba(0, 245, 255, 0.16) 0%, rgba(0, 245, 255, 0.06) 35%, transparent 70%)',
+              'radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)',
           }}
         />
 
         {showBgEffects && (
           <>
+            {/* Matrix Rain Effect */}
             <div
               className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none"
               aria-hidden="true"
             >
               {MATRIX_COLUMNS.map((col) => (
-                <div
+                <m.div
                   key={col.id}
-                  className="absolute select-none fira-code pointer-events-none whitespace-pre leading-tight animate-bounce"
+                  className="absolute select-none fira-code pointer-events-none whitespace-pre leading-tight will-change-transform"
                   style={{
                     left: col.left,
                     fontSize: col.fontSize,
                     color: col.color,
-                    animationDuration: col.duration,
-                    animationDelay: col.delay,
                     WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.1) 100%)',
                     maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.1) 100%)',
                   }}
+                  animate={{ y: ['-10vh', '110vh'] }}
+                  transition={{
+                    duration: col.duration,
+                    repeat: Infinity,
+                    delay: col.delay,
+                    ease: 'linear',
+                  }}
                 >
                   {col.text}
-                </div>
+                </m.div>
               ))}
             </div>
 
+            {/* Floating geometric shapes */}
             {FLOATING_SHAPES.map((shape, i) => (
-              <div
+              <m.div
                 key={i}
                 aria-hidden="true"
-                className="absolute pointer-events-none animate-pulse"
+                className="absolute will-change-transform"
                 style={{ left: shape.left, top: shape.top }}
+                animate={{
+                  y: [0, -30, 0],
+                  x: [0, shape.x, 0],
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: shape.duration,
+                  repeat: Infinity,
+                  delay: shape.delay,
+                  ease: 'easeInOut',
+                }}
               >
                 <div
-                  className={`w-4 h-4 ${shape.color} border ${
-                    shape.rounded ? 'rounded-full' : 'rounded-lg'
-                  } backdrop-blur-sm`}
+                  className={`w-4 h-4 ${
+                    i % 3 === 0
+                      ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40'
+                      : i % 3 === 1
+                      ? 'bg-[#39FF14]/20 border-[#39FF14]/40'
+                      : 'bg-[#B026FF]/20 border-[#B026FF]/40'
+                  } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
                 />
-              </div>
+              </m.div>
             ))}
 
-            <div
+            {/* Large glowing orbs */}
+            <m.div
               aria-hidden="true"
-              className="absolute w-[420px] h-[420px] rounded-full opacity-25 pointer-events-none animate-pulse"
+              className="absolute w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none will-change-transform"
               style={{
                 left: '5%',
                 top: '10%',
@@ -176,13 +212,48 @@ export function Hero() {
                   'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
                 filter: 'blur(40px)',
               }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+            <m.div
+              aria-hidden="true"
+              className="absolute w-[400px] h-[400px] rounded-full opacity-20 pointer-events-none will-change-transform"
+              style={{
+                right: '5%',
+                bottom: '10%',
+                background:
+                  'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
+                filter: 'blur(30px)',
+              }}
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.15, 0.3, 0.15],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 1,
+              }}
             />
           </>
         )}
       </div>
 
       {/* Cyber Defense Status HUD Node */}
-      <div className="absolute top-24 lg:top-28 right-8 glass-strong rounded-xl p-3.5 z-20 hidden lg:block border border-[#00F5FF]/30 select-none shadow-[0_0_20px_rgba(0,245,255,0.15)]">
+      <m.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="absolute top-24 lg:top-28 right-8 glass-strong rounded-xl p-3.5 z-20 hidden lg:block border border-[#00F5FF]/30 select-none shadow-[0_0_20px_rgba(0,245,255,0.15)]"
+      >
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
@@ -204,10 +275,11 @@ export function Hero() {
             </div>
           </div>
         </div>
-      </div>
+      </m.div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left Content */}
           <div className="text-center lg:text-left space-y-8">
             <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full">
               <Shield size={16} className="text-[#39FF14]" />
@@ -296,16 +368,25 @@ export function Hero() {
 
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               {SKILL_TAGS.map((skill, index) => (
-                <div
+                <m.div
                   key={index}
-                  className="glass px-4 py-2 rounded-full border transition-transform duration-200 hover:scale-105"
+                  className="glass px-4 py-2 rounded-full border"
                   style={{ borderColor: `${skill.color}40` }}
+                  whileHover={{
+                    scale: 1.1,
+                    boxShadow: `0 0 20px ${skill.color}60`,
+                  }}
+                  animate={showBgEffects ? { y: [0, -5, 0] } : undefined}
+                  transition={{
+                    y: { duration: 2, repeat: Infinity, delay: index * 0.2 },
+                    hover: { duration: 0.2 },
+                  }}
                 >
                   <div className="flex items-center gap-2">
                     <skill.icon size={16} style={{ color: skill.color }} />
                     <span className="text-sm text-[#E2E8F0] fira-code">{skill.label}</span>
                   </div>
-                </div>
+                </m.div>
               ))}
             </div>
           </div>
@@ -313,68 +394,31 @@ export function Hero() {
           {/* Right Content - 3D Profile Display */}
           <div className="flex justify-center lg:justify-end perspective-1000">
             <div className="relative preserve-3d">
-              <div className="relative">
-                <div
-                  className="absolute -inset-12 rounded-full border-2 border-[#00F5FF]/30 animate-spin"
-                  style={{ animationDuration: '12s' }}
+              <m.div
+                className="relative"
+                animate={showBgEffects ? { rotateY: [0, 5, 0, -5, 0] } : undefined}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              >
+                <m.div
+                  className="absolute -inset-12 rounded-full border-2 border-[#00F5FF]/30"
+                  animate={showBgEffects ? { rotate: 360 } : undefined}
+                  transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
                 />
 
-                <div className="absolute -inset-8 rounded-full border border-[#39FF14]/40 animate-pulse" />
+                <m.div
+                  className="absolute -inset-8 rounded-full border border-[#39FF14]/40"
+                  animate={
+                    showBgEffects
+                      ? { scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }
+                      : undefined
+                  }
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
 
                 <div className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center shadow-[0_0_60px_rgba(0,245,255,0.3)]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,245,255,0.25)_0%,transparent_70%)] pointer-events-none" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15)_0%,transparent_60%)] pointer-events-none" />
-
-                  <img
-                    src={profileImage}
-                    alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
-                    width={300}
-                    height={400}
-                    {...{ fetchpriority: 'high' }}
-                    draggable={false}
-                    onContextMenu={(e) => e.preventDefault()}
-                    onDragStart={(e) => e.preventDefault()}
-                    className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,245,255,0.35)] scale-105 origin-bottom transition-transform duration-300 pointer-events-none select-none"
-                  />
-
-                  <div
-                    className="absolute inset-0 z-25 bg-transparent select-none image-shield"
-                    onContextMenu={(e) => e.preventDefault()}
-                    onDragStart={(e) => e.preventDefault()}
-                  />
-
-                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0A0F1C] to-transparent pointer-events-none z-15" />
-                  <div className="absolute inset-0 holographic opacity-20 pointer-events-none z-20" />
-                </div>
-
-                {TECH_ICONS.map((item, index) => (
-                  <div
-                    key={index}
-                    className="absolute w-12 h-12 glass-strong rounded-xl flex items-center justify-center transition-transform duration-200 hover:scale-110"
-                    style={{
-                      ...item.position,
-                      boxShadow: `0 0 25px ${item.color}40`,
-                    }}
-                  >
-                    <item.icon size={20} style={{ color: item.color }} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-        <div className="flex flex-col items-center space-y-3 animate-bounce">
-          <div className="text-xs uppercase tracking-widest neon-text-blue orbitron">
-            Enter Cyberspace
-          </div>
-          <div className="w-6 h-10 border-2 border-[#00F5FF]/60 rounded-full p-1">
-            <div className="w-2 h-2 bg-[#00F5FF] rounded-full mx-auto animate-pulse" />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15
