@@ -38,8 +38,7 @@ export function Hero() {
     }
   };
 
-  // Cyberpunk matrix & binary decorative symbols
-  const matrixChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+  // Pure binary stream
   const binaryChars = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
   return (
@@ -62,7 +61,7 @@ export function Hero() {
           }}
         />
 
-        {/* Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
+        {/* Binary Matrix Rain Effect - Cyberpunk Visual Aesthetics */}
         <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none">
           {Array.from({ length: 25 }).map((_, i) => (
             <m.div
@@ -85,10 +84,7 @@ export function Hero() {
             >
               {Array.from({ length: 18 }).map((_, j) => (
                 <div key={j} style={{ opacity: 1 - (j * 0.05) }}>
-                  {i % 2 === 0 
-                    ? matrixChars[(i + j) % matrixChars.length]
-                    : binaryChars[(i * 2 + j) % binaryChars.length]
-                  }
+                  {binaryChars[(i * 7 + j * 3) % binaryChars.length]}
                 </div>
               ))}
             </m.div>
