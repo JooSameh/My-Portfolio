@@ -26,7 +26,7 @@
       ]
     },
     {
-      "source": "/(profile\\.webp|favicon\\.svg)",
+      "source": "/(profile\\.webp|favicon\\.svg|og-banner\\.png)",
       "headers": [
         { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" },
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
