@@ -89,7 +89,7 @@ export default function App() {
     document.documentElement.classList.remove('cyber-shield-locked');
 
     const activateShield = () => setMountShield(true);
-    const shieldTimer = window.setTimeout(activateShield, 1000);
+    const shieldTimer = window.setTimeout(activateShield, 900);
 
     const enableToaster = () => setMountToaster(true);
 
