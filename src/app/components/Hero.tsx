@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database, Binary, HardDrive
-} from 'lucide-react';
+import { Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database } from 'lucide-react';
 import { m } from 'motion/react';
 
 const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
-const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
-  const chars = Array.from({ length: 18 }, (_, j) =>
+const MATRIX_COLUMNS = Array.from({ length: 20 }, (_, i) => {
+  const chars = Array.from({ length: 16 }, (_, j) =>
     i % 2 === 0
       ? MATRIX_CHARS[(i + j) % MATRIX_CHARS.length]
       : BINARY_CHARS[(i * 2 + j) % BINARY_CHARS.length]
@@ -16,7 +14,7 @@ const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
 
   return {
     id: i,
-    left: `${i * 4 + 1}%`,
+    left: `${i * 5 + 1}%`,
     fontSize: `${(i % 3) * 3 + 9}px`,
     color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8',
     duration: (i % 4) + 3.5,
@@ -32,8 +30,6 @@ const FLOATING_SHAPES = [
   { left: '72%', top: '68%', x: -7, duration: 12, delay: 0.5, rounded: false },
   { left: '48%', top: '14%', x: 9, duration: 8.5, delay: 1.1, rounded: true },
   { left: '91%', top: '82%', x: -6, duration: 13, delay: 1.7, rounded: false },
-  { left: '8%', top: '56%', x: 7, duration: 9.5, delay: 0.4, rounded: false },
-  { left: '61%', top: '88%', x: -8, duration: 10.5, delay: 1.9, rounded: true },
 ];
 
 const STATS = [
@@ -45,8 +41,8 @@ const STATS = [
 const SKILL_TAGS = [
   { icon: Shield, label: 'Penetration Testing', color: '#00F5FF' },
   { icon: Lock, label: 'AI Development', color: '#39FF14' },
-  { icon: Binary, label: 'Vulnerability Research', color: '#B026FF' },
-  { icon: HardDrive, label: 'Public Speaking', color: '#FF073A' },
+  { icon: Cpu, label: 'Vulnerability Research', color: '#B026FF' },
+  { icon: Database, label: 'Public Speaking', color: '#FF073A' },
 ];
 
 const TECH_ICONS = [
@@ -54,8 +50,6 @@ const TECH_ICONS = [
   { icon: Lock, position: { bottom: '15%', left: '5%' }, color: '#39FF14' },
   { icon: Terminal, position: { top: '50%', right: '0%' }, color: '#B026FF' },
   { icon: Code, position: { bottom: '5%', right: '20%' }, color: '#FF073A' },
-  { icon: Database, position: { top: '25%', left: '0%' }, color: '#FFFF00' },
-  { icon: Cpu, position: { bottom: '35%', right: '5%' }, color: '#FF6B35' },
 ];
 
 export function Hero() {
@@ -80,15 +74,15 @@ export function Hero() {
   });
 
   useEffect(() => {
-    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 600);
+    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 700);
 
     const hasFinePointer = window.matchMedia?.('(pointer: fine)').matches;
     let rafId = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (rafId) return;
       const x = e.clientX - 192;
       const y = e.clientY - 192;
+      if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         if (glowRef.current) {
           glowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
@@ -119,12 +113,8 @@ export function Hero() {
 
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Dynamic Cyberpunk Background */}
       <div className="absolute inset-0">
-        {/* Base gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0A0F1C] via-[#0D1421] to-[#0A0F1C]" />
-
-        {/* Animated cyber grid */}
         <div className="absolute inset-0 cyber-grid opacity-20" />
 
         {/* Interactive cursor glow */}
@@ -134,13 +124,12 @@ export function Hero() {
           style={{
             transform: 'translate3d(-400px, -400px, 0)',
             background:
-              'radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)',
+              'radial-gradient(circle, rgba(0, 245, 255, 0.16) 0%, rgba(0, 245, 255, 0.06) 35%, transparent 70%)',
           }}
         />
 
         {showBgEffects && (
           <>
-            {/* Matrix Rain Effect */}
             <div
               className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none"
               aria-hidden="true"
@@ -169,7 +158,6 @@ export function Hero() {
               ))}
             </div>
 
-            {/* Floating geometric shapes */}
             {FLOATING_SHAPES.map((shape, i) => (
               <m.div
                 key={i}
@@ -201,10 +189,9 @@ export function Hero() {
               </m.div>
             ))}
 
-            {/* Large glowing orbs */}
             <m.div
               aria-hidden="true"
-              className="absolute w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none will-change-transform"
+              className="absolute w-[450px] h-[450px] rounded-full opacity-25 pointer-events-none will-change-transform"
               style={{
                 left: '5%',
                 top: '10%',
@@ -213,34 +200,13 @@ export function Hero() {
                 filter: 'blur(40px)',
               }}
               animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.2, 0.4, 0.2],
+                scale: [1, 1.25, 1],
+                opacity: [0.2, 0.35, 0.2],
               }}
               transition={{
                 duration: 6,
                 repeat: Infinity,
                 ease: 'easeInOut',
-              }}
-            />
-            <m.div
-              aria-hidden="true"
-              className="absolute w-[400px] h-[400px] rounded-full opacity-20 pointer-events-none will-change-transform"
-              style={{
-                right: '5%',
-                bottom: '10%',
-                background:
-                  'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
-                filter: 'blur(30px)',
-              }}
-              animate={{
-                scale: [1.2, 1, 1.2],
-                opacity: [0.15, 0.3, 0.15],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: 1,
               }}
             />
           </>
@@ -251,7 +217,7 @@ export function Hero() {
       <m.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
+        transition={{ delay: 0.7 }}
         className="absolute top-24 lg:top-28 right-8 glass-strong rounded-xl p-3.5 z-20 hidden lg:block border border-[#00F5FF]/30 select-none shadow-[0_0_20px_rgba(0,245,255,0.15)]"
       >
         <div className="space-y-2">
@@ -279,7 +245,6 @@ export function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left Content */}
           <div className="text-center lg:text-left space-y-8">
             <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full">
               <Shield size={16} className="text-[#39FF14]" />
@@ -375,11 +340,6 @@ export function Hero() {
                   whileHover={{
                     scale: 1.1,
                     boxShadow: `0 0 20px ${skill.color}60`,
-                  }}
-                  animate={showBgEffects ? { y: [0, -5, 0] } : undefined}
-                  transition={{
-                    y: { duration: 2, repeat: Infinity, delay: index * 0.2 },
-                    hover: { duration: 0.2 },
                   }}
                 >
                   <div className="flex items-center gap-2">
