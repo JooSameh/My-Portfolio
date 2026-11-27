@@ -7,7 +7,6 @@ import { m } from 'motion/react';
 const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
-// Precomputed once outside component (replaces 450 nested <div>s with 1 text node per column)
 const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
   const chars = Array.from({ length: 18 }, (_, j) =>
     i % 2 === 0
@@ -26,7 +25,6 @@ const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
   };
 });
 
-// Deterministic shapes (avoids Math.random() recalculation and layout thrashing)
 const FLOATING_SHAPES = [
   { left: '12%', top: '18%', x: 8, duration: 9, delay: 0.2, rounded: true },
   { left: '84%', top: '24%', x: -9, duration: 11, delay: 0.8, rounded: false },
@@ -63,7 +61,6 @@ const TECH_ICONS = [
 export function Hero() {
   const glowRef = useRef<HTMLDivElement>(null);
   const [showBgEffects, setShowBgEffects] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   const [profileImage] = useState<string>(() => {
     try {
@@ -83,15 +80,8 @@ export function Hero() {
   });
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
+    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 600);
 
-    // Defer decorative background animations until after initial paint to keep TBT near 0ms
-    const idleId =
-      'requestIdleCallback' in window
-        ? window.requestIdleCallback(() => setShowBgEffects(true), { timeout: 250 })
-        : window.setTimeout(() => setShowBgEffects(true), 120);
-
-    // Only attach cursor glow on pointer devices (skips mobile completely, zero React re-renders)
     const hasFinePointer = window.matchMedia?.('(pointer: fine)').matches;
     let rafId = 0;
 
@@ -112,11 +102,7 @@ export function Hero() {
     }
 
     return () => {
-      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
-        window.cancelIdleCallback(idleId);
-      } else {
-        clearTimeout(idleId);
-      }
+      clearTimeout(bgTimer);
       if (hasFinePointer) {
         window.removeEventListener('mousemove', handleMouseMove);
       }
@@ -131,10 +117,6 @@ export function Hero() {
     }
   };
 
-  const activeColumns = isMobile
-    ? MATRIX_COLUMNS.filter((_, idx) => idx % 2 === 0)
-    : MATRIX_COLUMNS;
-
   return (
     <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Dynamic Cyberpunk Background */}
@@ -145,10 +127,10 @@ export function Hero() {
         {/* Animated cyber grid */}
         <div className="absolute inset-0 cyber-grid opacity-20" />
 
-        {/* Interactive cursor glow (GPU-composited via ref, zero re-renders) */}
+        {/* Interactive cursor glow */}
         <div
           ref={glowRef}
-          className="hidden md:block absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none will-change-transform"
+          className="hidden md:block absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none transition-transform duration-300 ease-out will-change-transform"
           style={{
             transform: 'translate3d(-400px, -400px, 0)',
             background:
@@ -156,15 +138,14 @@ export function Hero() {
           }}
         />
 
-        {/* Deferred Decorative Effects (Matrix Rain + Floating Shapes + Orbs) */}
         {showBgEffects && (
           <>
-            {/* Matrix Rain Effect - Lightweight single text node per column */}
+            {/* Matrix Rain Effect */}
             <div
               className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none"
               aria-hidden="true"
             >
-              {activeColumns.map((col) => (
+              {MATRIX_COLUMNS.map((col) => (
                 <m.div
                   key={col.id}
                   className="absolute select-none fira-code pointer-events-none whitespace-pre leading-tight will-change-transform"
@@ -189,7 +170,7 @@ export function Hero() {
             </div>
 
             {/* Floating geometric shapes */}
-            {FLOATING_SHAPES.slice(0, isMobile ? 4 : 8).map((shape, i) => (
+            {FLOATING_SHAPES.map((shape, i) => (
               <m.div
                 key={i}
                 aria-hidden="true"
@@ -298,9 +279,8 @@ export function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left Content (static semantic markup for immediate FCP/LCP) */}
+          {/* Left Content */}
           <div className="text-center lg:text-left space-y-8">
-            {/* Security Badge */}
             <div className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full">
               <Shield size={16} className="text-[#39FF14]" />
               <span className="text-xs uppercase tracking-widest neon-text-green orbitron">
@@ -308,7 +288,6 @@ export function Hero() {
               </span>
             </div>
 
-            {/* Main Title with Holographic Effect */}
             <div className="space-y-6">
               <h1 className="text-7xl lg:text-9xl tracking-tight orbitron">
                 <span
@@ -333,7 +312,6 @@ export function Hero() {
               </div>
             </div>
 
-            {/* Enhanced Description */}
             <div className="glass p-6 rounded-xl">
               <p className="text-lg text-[#E2E8F0] leading-relaxed">
                 Ministry of Youth & Sports certified instructor training 45+ students in cybersecurity fundamentals.
@@ -343,7 +321,6 @@ export function Hero() {
               </p>
             </div>
 
-            {/* Animated Stats */}
             <div className="grid grid-cols-3 gap-6">
               {STATS.map((stat, index) => (
                 <m.div
@@ -362,7 +339,6 @@ export function Hero() {
               ))}
             </div>
 
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <m.button
                 onClick={scrollToAbout}
@@ -390,7 +366,6 @@ export function Hero() {
               </m.a>
             </div>
 
-            {/* Floating Skill Tags */}
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               {SKILL_TAGS.map((skill, index) => (
                 <m.div
@@ -419,7 +394,6 @@ export function Hero() {
           {/* Right Content - 3D Profile Display */}
           <div className="flex justify-center lg:justify-end perspective-1000">
             <div className="relative preserve-3d">
-              {/* Holographic Frame */}
               <m.div
                 className="relative"
                 animate={showBgEffects ? { rotateY: [0, 5, 0, -5, 0] } : undefined}
@@ -429,14 +403,12 @@ export function Hero() {
                   ease: 'easeInOut',
                 }}
               >
-                {/* Outer Scanning Ring */}
                 <m.div
                   className="absolute -inset-12 rounded-full border-2 border-[#00F5FF]/30"
                   animate={showBgEffects ? { rotate: 360 } : undefined}
                   transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
                 />
 
-                {/* Middle Pulse Ring */}
                 <m.div
                   className="absolute -inset-8 rounded-full border border-[#39FF14]/40"
                   animate={
@@ -447,13 +419,10 @@ export function Hero() {
                   transition={{ duration: 3, repeat: Infinity }}
                 />
 
-                {/* Main Profile Container */}
                 <div className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center shadow-[0_0_60px_rgba(0,245,255,0.3)]">
-                  {/* Pure Cyber Glow Backgrounds */}
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,245,255,0.25)_0%,transparent_70%)] pointer-events-none" />
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15)_0%,transparent_60%)] pointer-events-none" />
 
-                  {/* Profile Image with Touch & Right-Click Shield */}
                   <img
                     src={profileImage}
                     alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
@@ -466,20 +435,16 @@ export function Hero() {
                     className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,245,255,0.35)] scale-105 origin-bottom transition-transform duration-300 pointer-events-none select-none"
                   />
 
-                  {/* Transparent Touch & Click Protection Shield */}
                   <div
                     className="absolute inset-0 z-25 bg-transparent select-none image-shield"
                     onContextMenu={(e) => e.preventDefault()}
                     onDragStart={(e) => e.preventDefault()}
                   />
 
-                  {/* Smooth Bottom Gradient Blend */}
                   <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0A0F1C] to-transparent pointer-events-none z-15" />
 
-                  {/* Holographic Overlay */}
                   <div className="absolute inset-0 holographic opacity-20 pointer-events-none z-20" />
 
-                  {/* Scanning Lines */}
                   {showBgEffects && (
                     <m.div
                       className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00F5FF]/30 to-transparent h-8 pointer-events-none z-20"
@@ -489,7 +454,6 @@ export function Hero() {
                   )}
                 </div>
 
-                {/* Floating Tech Icons */}
                 {TECH_ICONS.map((item, index) => (
                   <m.div
                     key={index}
@@ -520,7 +484,6 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Enhanced Scroll Indicator */}
       <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
