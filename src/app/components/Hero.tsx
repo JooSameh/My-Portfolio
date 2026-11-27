@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Shield, Code, Terminal, Lock, Zap, Eye, Cpu, Database } from 'lucide-react';
+import { Shield, Code, Terminal, Lock, Zap, Eye } from 'lucide-react';
 import { m } from 'motion/react';
 
 const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
 
-const MATRIX_COLUMNS = Array.from({ length: 20 }, (_, i) => {
+const MATRIX_COLUMNS = Array.from({ length: 18 }, (_, i) => {
   const chars = Array.from({ length: 16 }, (_, j) =>
     i % 2 === 0
       ? MATRIX_CHARS[(i + j) % MATRIX_CHARS.length]
@@ -14,7 +14,7 @@ const MATRIX_COLUMNS = Array.from({ length: 20 }, (_, i) => {
 
   return {
     id: i,
-    left: `${i * 5 + 1}%`,
+    left: `${i * 5.5 + 1}%`,
     fontSize: `${(i % 3) * 3 + 9}px`,
     color: i % 3 === 0 ? '#00F5FF' : i % 3 === 1 ? '#39FF14' : '#94A3B8',
     duration: (i % 4) + 3.5,
@@ -29,7 +29,6 @@ const FLOATING_SHAPES = [
   { left: '28%', top: '76%', x: 6, duration: 10, delay: 1.4, rounded: true },
   { left: '72%', top: '68%', x: -7, duration: 12, delay: 0.5, rounded: false },
   { left: '48%', top: '14%', x: 9, duration: 8.5, delay: 1.1, rounded: true },
-  { left: '91%', top: '82%', x: -6, duration: 13, delay: 1.7, rounded: false },
 ];
 
 const STATS = [
@@ -41,8 +40,8 @@ const STATS = [
 const SKILL_TAGS = [
   { icon: Shield, label: 'Penetration Testing', color: '#00F5FF' },
   { icon: Lock, label: 'AI Development', color: '#39FF14' },
-  { icon: Cpu, label: 'Vulnerability Research', color: '#B026FF' },
-  { icon: Database, label: 'Public Speaking', color: '#FF073A' },
+  { icon: Terminal, label: 'Vulnerability Research', color: '#B026FF' },
+  { icon: Code, label: 'Public Speaking', color: '#FF073A' },
 ];
 
 const TECH_ICONS = [
@@ -74,7 +73,7 @@ export function Hero() {
   });
 
   useEffect(() => {
-    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 700);
+    const bgTimer = window.setTimeout(() => setShowBgEffects(true), 900);
 
     const hasFinePointer = window.matchMedia?.('(pointer: fine)').matches;
     let rafId = 0;
