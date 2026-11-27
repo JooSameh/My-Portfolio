@@ -5,7 +5,7 @@
   <title>OG Banner Generator - Youssef EL-Gendy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,7 +20,6 @@
     }
     .toolbar {
       display: flex;
-      flex-wrap: wrap;
       gap: 12px;
       align-items: center;
       background: #0F172A;
@@ -29,7 +28,7 @@
       border: 1px solid #1E293B;
     }
     button, label.btn {
-      background: #0EA5E9;
+      background: #10B981;
       color: #041019;
       font-weight: 700;
       font-size: 14px;
@@ -37,32 +36,21 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: 0.2s;
     }
-    button:hover, label.btn:hover { background: #38BDF8; }
+    button:hover, label.btn:hover { background: #34D399; }
     label.btn.secondary {
       background: #1E293B;
       color: #E2E8F0;
       border: 1px solid #334155;
     }
-    label.btn.secondary:hover { background: #334155; }
     input[type="file"] { display: none; }
-    .controls {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      font-size: 13px;
-      color: #94A3B8;
-    }
-    .controls input[type="range"] { accent-color: #0EA5E9; width: 110px; }
     canvas {
-      width: 520px;
-      height: 520px;
+      width: 500px;
+      height: 500px;
       border-radius: 14px;
       border: 1px solid #1E293B;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     }
-    .hint { font-size: 13px; color: #94A3B8; }
   </style>
 </head>
 <body>
@@ -72,32 +60,17 @@
       1. اختيار صورتك (profile.webp)
       <input type="file" id="photoInput" accept="image/*" />
     </label>
-
-    <div class="controls">
-      <span>حجم الصورة: <input type="range" id="scaleRange" min="0.7" max="1.4" step="0.02" value="1.0" /></span>
-      <span>تحريك رأسي: <input type="range" id="yRange" min="-150" max="150" step="5" value="0" /></span>
-    </div>
-
     <button id="downloadBtn">2. تحميل og-square.png (1200×1200)</button>
   </div>
 
   <canvas id="bannerCanvas" width="1200" height="1200"></canvas>
-  <p class="hint">المعاينة مصغّرة للعرض فقط — الملف المحمّل هينزل بجودة أصلية 1200×1200 PNG</p>
 
   <script>
     const canvas = document.getElementById('bannerCanvas');
     const ctx = canvas.getContext('2d');
     const photoInput = document.getElementById('photoInput');
-    const scaleRange = document.getElementById('scaleRange');
-    const yRange = document.getElementById('yRange');
     const downloadBtn = document.getElementById('downloadBtn');
-
     let userImg = null;
-
-    // محاولة تحميل الصورة تلقائياً لو الملف محفوظ داخل مجلد public
-    const autoImg = new Image();
-    autoImg.onload = () => { userImg = autoImg; draw(); };
-    autoImg.src = './profile.webp';
 
     photoInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -111,141 +84,140 @@
       reader.readAsDataURL(file);
     });
 
-    scaleRange.addEventListener('input', draw);
-    yRange.addEventListener('input', draw);
-
-    function drawShield(x, y, size) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.beginPath();
-      ctx.moveTo(size * 0.5, 0);
-      ctx.lineTo(size, size * 0.22);
-      ctx.lineTo(size, size * 0.56);
-      ctx.quadraticCurveTo(size, size * 0.88, size * 0.5, size);
-      ctx.quadraticCurveTo(0, size * 0.88, 0, size * 0.56);
-      ctx.lineTo(0, size * 0.22);
-      ctx.closePath();
-
-      const grad = ctx.createLinearGradient(0, 0, size, size);
-      grad.addColorStop(0, 'rgba(14, 165, 233, 0.22)');
-      grad.addColorStop(1, 'rgba(6, 182, 212, 0.08)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = '#38BDF8';
-      ctx.stroke();
-
-      // Inner split accent
-      ctx.beginPath();
-      ctx.moveTo(size * 0.5, size * 0.14);
-      ctx.lineTo(size * 0.84, size * 0.30);
-      ctx.lineTo(size * 0.84, size * 0.55);
-      ctx.quadraticCurveTo(size * 0.84, size * 0.78, size * 0.5, size * 0.87);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
-      ctx.fill();
-      ctx.restore();
-    }
-
     function draw() {
       const W = 1200, H = 1200;
+      const marginX = 95;
 
-      // 1. Base Background (#0A0F1C)
-      ctx.fillStyle = '#0A0F1C';
+      // 1. Dark Background matching site
+      ctx.fillStyle = '#090D16';
       ctx.fillRect(0, 0, W, H);
 
-      // 2. Ambient Cyber Glows
-      const glowRight = ctx.createRadialGradient(880, 460, 40, 880, 460, 520);
-      glowRight.addColorStop(0, 'rgba(14, 165, 233, 0.22)');
-      glowRight.addColorStop(1, 'rgba(10, 15, 28, 0)');
+      // 2. Emerald & Cyan Ambient Glows (matching portfolio hero)
+      const glowRight = ctx.createRadialGradient(875, 345, 30, 875, 345, 450);
+      glowRight.addColorStop(0, 'rgba(16, 185, 129, 0.24)');
+      glowRight.addColorStop(0.55, 'rgba(6, 182, 212, 0.12)');
+      glowRight.addColorStop(1, 'rgba(9, 13, 22, 0)');
       ctx.fillStyle = glowRight;
       ctx.fillRect(0, 0, W, H);
 
-      const glowLeft = ctx.createRadialGradient(250, 850, 30, 250, 850, 450);
-      glowLeft.addColorStop(0, 'rgba(6, 182, 212, 0.10)');
-      glowLeft.addColorStop(1, 'rgba(10, 15, 28, 0)');
+      const glowLeft = ctx.createRadialGradient(220, 750, 20, 220, 750, 420);
+      glowLeft.addColorStop(0, 'rgba(16, 185, 129, 0.10)');
+      glowLeft.addColorStop(1, 'rgba(9, 13, 22, 0)');
       ctx.fillStyle = glowLeft;
       ctx.fillRect(0, 0, W, H);
 
-      // 3. Subtle Tech Grid
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+      // 3. Subtle Matrix/Cyber Grid
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.05)';
       ctx.lineWidth = 1.5;
-      const step = 60;
-      for (let x = 0; x <= W; x += step) {
+      for (let x = 0; x <= W; x += 60) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
       }
-      for (let y = 0; y <= H; y += step) {
+      for (let y = 0; y <= H; y += 60) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
 
-      // 4. User Portrait (Positioned top-right with smooth bottom fade)
-      if (userImg) {
-        const scale = parseFloat(scaleRange.value);
-        const yOffset = parseInt(yRange.value, 10);
-        const targetH = 740 * scale;
-        const aspect = userImg.width / userImg.height;
-        const targetW = targetH * aspect;
-        const imgX = W - targetW - 65;
-        const imgY = 60 + yOffset;
-
-        ctx.save();
-        ctx.drawImage(userImg, imgX, imgY, targetW, targetH);
-        ctx.restore();
-      } else {
-        // Placeholder hint if photo not loaded yet
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
-        ctx.setLineDash([10, 10]);
-        ctx.strokeRect(680, 110, 420, 500);
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#64748B';
-        ctx.font = '600 24px Inter, sans-serif';
-        ctx.fillText('اختار صورتك من الزرار فوق', 755, 365);
-      }
-
-      // 5. Smooth Bottom & Left Gradient Overlay so text pops with 100% contrast
-      const bottomFade = ctx.createLinearGradient(0, 480, 0, 920);
-      bottomFade.addColorStop(0, 'rgba(10, 15, 28, 0)');
-      bottomFade.addColorStop(0.55, 'rgba(10, 15, 28, 0.88)');
-      bottomFade.addColorStop(1, '#0A0F1C');
-      ctx.fillStyle = bottomFade;
-      ctx.fillRect(0, 480, W, 720);
-
-      // 6. Safe-Zone Layout (Margin >= 95px from all edges so WhatsApp never crops anything)
-      const marginX = 95;
-
-      // Top-Left Shield Logo + Status Pill
-      drawShield(marginX, 105, 84);
-
-      ctx.fillStyle = 'rgba(14, 165, 233, 0.12)';
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+      // 4. Top-Left Status Badge (matching site navbar)
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.10)';
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(marginX, 225, 310, 46, 23);
+      ctx.roundRect(marginX, 115, 250, 48, 24);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#38BDF8';
+      ctx.fillStyle = '#10B981';
       ctx.font = '700 20px "JetBrains Mono", monospace';
-      ctx.fillText('● OFFENSIVE SECURITY', marginX + 24, 255);
+      ctx.fillText('● ONLINE', marginX + 26, 146);
 
-      // Main Name (Large, crisp, un-croppable)
+      // 5. Circular Radar Frame + Portrait (Top-Right)
+      const cx = 875, cy = 345, radius = 190;
+
+      // Outer Radar Rings
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 48, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.14)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 22, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.30)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Portrait Clip
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fillStyle = '#0F172A';
+      ctx.fill();
+      ctx.clip();
+
+      if (userImg) {
+        const scale = Math.max((radius * 2) / userImg.width, (radius * 2) / userImg.height);
+        const drawW = userImg.width * scale;
+        const drawH = userImg.height * scale;
+        ctx.drawImage(userImg, cx - drawW / 2, cy - drawH / 2 + 12, drawW, drawH);
+
+        // Teal/Emerald tint overlay at bottom of avatar like site
+        const tint = ctx.createLinearGradient(0, cy - radius, 0, cy + radius);
+        tint.addColorStop(0, 'rgba(6, 182, 212, 0.12)');
+        tint.addColorStop(1, 'rgba(16, 185, 129, 0.22)');
+        ctx.fillStyle = tint;
+        ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+      } else {
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '600 22px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('اختار صورتك', cx, cy + 8);
+        ctx.textAlign = 'left';
+      }
+      ctx.restore();
+
+      // Main Glowing Ring Border
+      const ringGrad = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+      ringGrad.addColorStop(0, '#06B6D4');
+      ringGrad.addColorStop(1, '#10B981');
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = ringGrad;
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      // 6. Main Typography (Matching Portfolio Hero)
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '800 96px Inter, sans-serif';
-      ctx.fillText('Youssef', marginX, 745);
-      ctx.fillText('EL-Gendy', marginX, 850);
+      ctx.font = '800 102px Inter, sans-serif';
+      ctx.fillText('Youssef', marginX, 685);
 
-      // Role Subtitle
-      ctx.fillStyle = '#38BDF8';
-      ctx.font = '700 40px Inter, sans-serif';
-      ctx.fillText('Cybersecurity Instructor & AI Developer', marginX, 925);
+      ctx.fillStyle = '#10B981';
+      ctx.font = '800 102px Inter, sans-serif';
+      ctx.fillText('EL-Gendy', marginX, 795);
 
-      // Bottom Accent Line & Domain URL
-      ctx.fillStyle = '#1E293B';
-      ctx.fillRect(marginX, 975, W - marginX * 2, 2);
+      // Role Line
+      ctx.font = '700 38px Inter, sans-serif';
+      ctx.fillStyle = '#E2E8F0';
+      const rolePart1 = 'Cybersecurity Instructor & ';
+      ctx.fillText(rolePart1, marginX, 875);
+      const part1W = ctx.measureText(rolePart1).width;
+      ctx.fillStyle = '#22D3EE';
+      ctx.fillText('AI Developer', marginX + part1W, 875);
 
+      // Terminal Tagline
+      ctx.fillStyle = '#10B981';
+      ctx.font = '700 26px "JetBrains Mono", monospace';
+      ctx.fillText('>_', marginX, 932);
       ctx.fillStyle = '#94A3B8';
-      ctx.font = '500 30px "JetBrains Mono", monospace';
-      ctx.fillText('youssef-elgendy.vercel.app', marginX, 1035);
+      ctx.font = '500 26px "JetBrains Mono", monospace';
+      ctx.fillText(' Offensive Security & AI-Driven Solutions', marginX + 36, 932);
+
+      // Divider & Domain
+      ctx.fillStyle = '#1E293B';
+      ctx.fillRect(marginX, 980, W - marginX * 2, 2);
+
+      ctx.fillStyle = '#64748B';
+      ctx.font = '500 28px "JetBrains Mono", monospace';
+      ctx.fillText('youssef-elgendy.vercel.app', marginX, 1038);
     }
 
     document.fonts.ready.then(draw);
