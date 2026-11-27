@@ -24,14 +24,14 @@ const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
 });
 
 const FLOATING_SHAPES = [
-  { left: '12%', top: '18%', x: 8, duration: 9, delay: 0.2, rounded: true },
-  { left: '84%', top: '24%', x: -9, duration: 11, delay: 0.8, rounded: false },
-  { left: '28%', top: '76%', x: 6, duration: 10, delay: 1.4, rounded: true },
-  { left: '72%', top: '68%', x: -7, duration: 12, delay: 0.5, rounded: false },
-  { left: '48%', top: '14%', x: 9, duration: 8.5, delay: 1.1, rounded: true },
-  { left: '91%', top: '82%', x: -6, duration: 13, delay: 1.7, rounded: false },
-  { left: '8%', top: '56%', x: 7, duration: 9.5, delay: 0.4, rounded: false },
-  { left: '61%', top: '88%', x: -8, duration: 10.5, delay: 1.9, rounded: true },
+  { left: 12, top: 18, x: 8, duration: 9, delay: 0.2, rounded: true },
+  { left: 84, top: 24, x: -9, duration: 11, delay: 0.8, rounded: false },
+  { left: 28, top: 76, x: 6, duration: 10, delay: 1.4, rounded: true },
+  { left: 72, top: 68, x: -7, duration: 12, delay: 0.5, rounded: false },
+  { left: 48, top: 14, x: 9, duration: 8.5, delay: 1.1, rounded: true },
+  { left: 91, top: 82, x: -6, duration: 13, delay: 1.7, rounded: false },
+  { left: 8, top: 56, x: 7, duration: 9.5, delay: 0.4, rounded: false },
+  { left: 61, top: 88, x: -8, duration: 10.5, delay: 1.9, rounded: true },
 ];
 
 const STATS = [
@@ -57,10 +57,10 @@ const TECH_ICONS = [
 ];
 
 export function Hero() {
+  const sectionRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const avatarTiltRef = useRef<HTMLDivElement>(null);
-  const bgParallaxRef = useRef<HTMLDivElement>(null);
-  const orbsParallaxRef = useRef<HTMLDivElement>(null);
+  const shapeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [showBgEffects, setShowBgEffects] = useState(false);
 
   const [profileImage] = useState<string>(() => {
@@ -93,19 +93,35 @@ export function Hero() {
       const glowX = clientX - 192;
       const glowY = clientY - 192;
 
-      const normX = (clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
-      const normY = (clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      const rect = sectionRef.current?.getBoundingClientRect();
+      const width = Math.max(rect?.width || window.innerWidth, 1);
+      const height = Math.max(rect?.height || window.innerHeight, 1);
+      const localX = clientX - (rect?.left || 0);
+      const localY = clientY - (rect?.top || 0);
 
+      const normX = (localX / width - 0.5) * 2;
+      const normY = (localY / height - 0.5) * 2;
       const rotateY = normX * 8;
       const rotateX = -normY * 6;
       const shiftX = normX * 10;
       const shiftY = normY * 8;
 
-      const shapesX = -normX * 22;
-      const shapesY = -normY * 18;
-
-      const orbsX = -normX * 32;
-      const orbsY = -normY * 24;
+      const shapeOffsets = FLOATING_SHAPES.map((shape) => {
+        const sx = (shape.left / 100) * width;
+        const sy = (shape.top / 100) * height;
+        const dx = sx - localX;
+        const dy = sy - localY;
+        const dist = Math.hypot(dx, dy);
+        const maxRadius = 240;
+        if (dist < maxRadius && dist > 1) {
+          const force = (1 - dist / maxRadius) * 34;
+          return {
+            x: (dx / dist) * force,
+            y: (dy / dist) * force,
+          };
+        }
+        return { x: 0, y: 0 };
+      });
 
       rafId = requestAnimationFrame(() => {
         if (glowRef.current) {
@@ -114,12 +130,12 @@ export function Hero() {
         if (avatarTiltRef.current) {
           avatarTiltRef.current.style.transform = `translate3d(${shiftX}px, ${shiftY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         }
-        if (bgParallaxRef.current) {
-          bgParallaxRef.current.style.transform = `translate3d(${shapesX}px, ${shapesY}px, 0)`;
-        }
-        if (orbsParallaxRef.current) {
-          orbsParallaxRef.current.style.transform = `translate3d(${orbsX}px, ${orbsY}px, 0)`;
-        }
+        shapeOffsets.forEach((offset, idx) => {
+          const el = shapeRefs.current[idx];
+          if (el) {
+            el.style.transform = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
+          }
+        });
         rafId = 0;
       });
     };
@@ -128,12 +144,11 @@ export function Hero() {
       if (avatarTiltRef.current) {
         avatarTiltRef.current.style.transform = 'translate3d(0px, 0px, 0) rotateX(0deg) rotateY(0deg)';
       }
-      if (bgParallaxRef.current) {
-        bgParallaxRef.current.style.transform = 'translate3d(0px, 0px, 0)';
-      }
-      if (orbsParallaxRef.current) {
-        orbsParallaxRef.current.style.transform = 'translate3d(0px, 0px, 0)';
-      }
+      shapeRefs.current.forEach((el) => {
+        if (el) {
+          el.style.transform = 'translate3d(0px, 0px, 0)';
+        }
+      });
     };
 
     if (hasFinePointer) {
@@ -159,7 +174,10 @@ export function Hero() {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+    >
       {/* Dynamic Cyberpunk Background */}
       <div className="absolute inset-0">
         {/* Base gradient */}
@@ -210,17 +228,19 @@ export function Hero() {
               ))}
             </div>
 
-            {/* Mouse-reactive floating geometric shapes (circles & rounded squares) */}
-            <div
-              ref={bgParallaxRef}
-              className="absolute inset-0 pointer-events-none transition-transform duration-200 ease-out will-change-transform"
-              aria-hidden="true"
-            >
-              {FLOATING_SHAPES.map((shape, i) => (
+            {/* Individual mouse-reactive floating geometric shapes */}
+            {FLOATING_SHAPES.map((shape, i) => (
+              <div
+                key={i}
+                ref={(el) => {
+                  shapeRefs.current[i] = el;
+                }}
+                aria-hidden="true"
+                className="absolute pointer-events-none transition-transform duration-200 ease-out will-change-transform"
+                style={{ left: `${shape.left}%`, top: `${shape.top}%` }}
+              >
                 <m.div
-                  key={i}
-                  className="absolute will-change-transform"
-                  style={{ left: shape.left, top: shape.top }}
+                  className="will-change-transform"
                   animate={{
                     y: [0, -30, 0],
                     x: [0, shape.x, 0],
@@ -244,55 +264,51 @@ export function Hero() {
                     } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
                   />
                 </m.div>
-              ))}
-            </div>
+              </div>
+            ))}
 
-            {/* Mouse-reactive large glowing orbs */}
-            <div
-              ref={orbsParallaxRef}
-              className="absolute inset-0 pointer-events-none transition-transform duration-300 ease-out will-change-transform"
+            {/* Large glowing orbs */}
+            <m.div
               aria-hidden="true"
-            >
-              <m.div
-                className="absolute w-[500px] h-[500px] rounded-full opacity-30 will-change-transform"
-                style={{
-                  left: '5%',
-                  top: '10%',
-                  background:
-                    'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
-                  filter: 'blur(40px)',
-                }}
-                animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.2, 0.4, 0.2],
-                }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-              <m.div
-                className="absolute w-[400px] h-[400px] rounded-full opacity-20 will-change-transform"
-                style={{
-                  right: '5%',
-                  bottom: '10%',
-                  background:
-                    'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
-                  filter: 'blur(30px)',
-                }}
-                animate={{
-                  scale: [1.2, 1, 1.2],
-                  opacity: [0.15, 0.3, 0.15],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: 1,
-                }}
-              />
-            </div>
+              className="absolute w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none will-change-transform"
+              style={{
+                left: '5%',
+                top: '10%',
+                background:
+                  'radial-gradient(circle, rgba(0, 245, 255, 0.2) 0%, rgba(0, 245, 255, 0.1) 30%, transparent 70%)',
+                filter: 'blur(40px)',
+              }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+            <m.div
+              aria-hidden="true"
+              className="absolute w-[400px] h-[400px] rounded-full opacity-20 pointer-events-none will-change-transform"
+              style={{
+                right: '5%',
+                bottom: '10%',
+                background:
+                  'radial-gradient(circle, rgba(57, 255, 20, 0.3) 0%, rgba(57, 255, 20, 0.1) 30%, transparent 70%)',
+                filter: 'blur(30px)',
+              }}
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.15, 0.3, 0.15],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 1,
+              }}
+            />
           </>
         )}
       </div>
