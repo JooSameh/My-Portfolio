@@ -1,13 +1,11 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Preloader } from './components/Preloader';
+import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
-const ScreenShieldOverlay = lazy(() =>
-  import('./components/ScreenShieldOverlay').then((m) => ({ default: m.ScreenShieldOverlay }))
-);
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
 const Education = lazy(() => import('./components/Education').then((m) => ({ default: m.Education })));
 const Experience = lazy(() => import('./components/Experience').then((m) => ({ default: m.Experience })));
@@ -83,28 +81,9 @@ function DeferredSection({
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mountToaster, setMountToaster] = useState(false);
-  const [mountShield, setMountShield] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('cyber-shield-locked');
-
-    const activateShield = () => {
-      setMountShield(true);
-      clearTimeout(shieldTimer);
-      window.removeEventListener('pointermove', activateShield);
-      window.removeEventListener('pointerdown', activateShield);
-      window.removeEventListener('touchstart', activateShield);
-      window.removeEventListener('keydown', activateShield, true);
-      window.removeEventListener('contextmenu', activateShield, true);
-    };
-
-    const shieldTimer = window.setTimeout(activateShield, 2000);
-
-    window.addEventListener('pointermove', activateShield, { once: true, passive: true });
-    window.addEventListener('pointerdown', activateShield, { once: true, passive: true });
-    window.addEventListener('touchstart', activateShield, { once: true, passive: true });
-    window.addEventListener('keydown', activateShield, { once: true, capture: true });
-    window.addEventListener('contextmenu', activateShield, { once: true, capture: true });
 
     const enableToaster = () => setMountToaster(true);
 
@@ -145,12 +124,6 @@ export default function App() {
     document.addEventListener('dragstart', handleDragStart, true);
 
     return () => {
-      clearTimeout(shieldTimer);
-      window.removeEventListener('pointermove', activateShield);
-      window.removeEventListener('pointerdown', activateShield);
-      window.removeEventListener('touchstart', activateShield);
-      window.removeEventListener('keydown', activateShield, true);
-      window.removeEventListener('contextmenu', activateShield, true);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointerdown', enableToaster);
       document.removeEventListener('copy', handleCopyOrCut, true);
@@ -168,11 +141,7 @@ export default function App() {
     <LazyMotion features={domAnimation} strict>
       <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
         <Preloader />
-        {mountShield && (
-          <Suspense fallback={null}>
-            <ScreenShieldOverlay />
-          </Suspense>
-        )}
+        <ScreenShieldOverlay />
         <Header />
         <main>
           <Hero />
