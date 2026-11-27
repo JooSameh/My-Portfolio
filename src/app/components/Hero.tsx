@@ -421,4 +421,92 @@ export function Hero() {
 
                 <div className="w-80 h-80 sm:w-96 sm:h-96 rounded-full glass-strong relative overflow-hidden select-none bg-gradient-to-b from-[#0D1421] via-[#0A0F1C] to-[#0A0F1C] flex items-end justify-center shadow-[0_0_60px_rgba(0,245,255,0.3)]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,245,255,0.25)_0%,transparent_70%)] pointer-events-none" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(57,255,20,0.15)_0%,transparent_60%)] pointer-events-none" />
+
+                  <img
+                    src={profileImage}
+                    alt="Youssef Sameh EL-Gendy - Cybersecurity Professional"
+                    width={300}
+                    height={400}
+                    {...{ fetchpriority: 'high' }}
+                    draggable={false}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    className="w-full h-full object-contain object-bottom relative z-10 drop-shadow-[0_15px_30px_rgba(0,245,255,0.35)] scale-105 origin-bottom transition-transform duration-300 pointer-events-none select-none"
+                  />
+
+                  <div
+                    className="absolute inset-0 z-25 bg-transparent select-none image-shield"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                  />
+
+                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0A0F1C] to-transparent pointer-events-none z-15" />
+
+                  <div className="absolute inset-0 holographic opacity-20 pointer-events-none z-20" />
+
+                  {showBgEffects && (
+                    <m.div
+                      className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00F5FF]/30 to-transparent h-8 pointer-events-none z-20"
+                      animate={{ y: ['-2rem', '24rem'] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                    />
+                  )}
+                </div>
+
+                {TECH_ICONS.map((item, index) => (
+                  <m.div
+                    key={index}
+                    className="absolute w-12 h-12 glass-strong rounded-xl flex items-center justify-center"
+                    style={{
+                      ...item.position,
+                      boxShadow: `0 0 25px ${item.color}40`,
+                    }}
+                    animate={
+                      showBgEffects
+                        ? { y: [0, -15, 0], rotate: [0, 10, 0] }
+                        : undefined
+                    }
+                    transition={{
+                      duration: 3 + index * 0.5,
+                      repeat: Infinity,
+                      delay: index * 0.3,
+                      ease: 'easeInOut',
+                    }}
+                    whileHover={{ scale: 1.2 }}
+                  >
+                    <item.icon size={20} style={{ color: item.color }} />
+                  </m.div>
+                ))}
+              </m.div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <m.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center"
+      >
+        <m.div
+          animate={showBgEffects ? { y: [0, 15, 0] } : undefined}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="flex flex-col items-center space-y-3"
+        >
+          <div className="text-xs uppercase tracking-widest neon-text-blue orbitron">
+            Enter Cyberspace
+          </div>
+          <div className="w-6 h-10 border-2 border-[#00F5FF]/60 rounded-full p-1">
+            <m.div
+              className="w-2 h-2 bg-[#00F5FF] rounded-full mx-auto"
+              animate={showBgEffects ? { y: [0, 16, 0] } : undefined}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+          </div>
+        </m.div>
+      </m.div>
+    </section>
+  );
+}
