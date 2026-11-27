@@ -4,40 +4,46 @@ import { ShieldAlert, Terminal, Lock } from 'lucide-react';
 const POLICY_MESSAGE =
   'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
 
-function silentOverwriteClipboard(text: string) {
+function overwriteClipboardWithPolicy() {
+  // 1. Try modern Clipboard API first (replaces screenshot image in Windows clipboard)
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(POLICY_MESSAGE).catch(() => {});
+  }
+
+  // 2. Fallback via hidden textarea for active user gestures
   try {
     const textarea = document.createElement('textarea');
-    textarea.value = text;
+    textarea.value = POLICY_MESSAGE;
     textarea.setAttribute('readonly', '');
     textarea.style.position = 'fixed';
     textarea.style.top = '-9999px';
     textarea.style.left = '-9999px';
-    textarea.style.opacity = '0';
     document.body.appendChild(textarea);
     textarea.select();
-    textarea.setSelectionRange(0, text.length);
+    textarea.setSelectionRange(0, POLICY_MESSAGE.length);
     document.execCommand('copy');
     document.body.removeChild(textarea);
   } catch {
-    // Fallback ignored to avoid browser permission prompts
+    // Ignore if blocked by browser sandbox
   }
 }
 
 export function ScreenShieldOverlay() {
   const [locked, setLocked] = useState(false);
-  const [vector, setVector] = useState('SHORTCUT');
+  const [vector, setVector] = useState('SCREEN_CAPTURE');
 
   useEffect(() => {
     const triggerShield = (reason: string) => {
+      document.documentElement.classList.add('cyber-shield-locked');
       setVector(reason);
       setLocked(true);
-      document.documentElement.classList.add('cyber-shield-locked');
-      silentOverwriteClipboard(POLICY_MESSAGE);
+      overwriteClipboardWithPolicy();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key?.toLowerCase();
-      const isPrintScreen = e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44;
+      const isPrintScreen =
+        e.key === 'PrintScreen' || e.code === 'PrintScreen' || e.keyCode === 44;
       const isDevTools =
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) ||
@@ -66,20 +72,27 @@ export function ScreenShieldOverlay() {
     };
 
     const handleWindowBlur = () => {
-      // Locks screen immediately when Windows Snipping Tool overlay takes focus
-      triggerShield('FOCUS_LOST / SNIPPING_TOOL');
+      triggerShield('SNIPPING_TOOL / FOCUS_LOST');
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        triggerShield('SCREEN_SWITCH / CAPTURE');
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
     window.addEventListener('keyup', handleKeyUp, true);
     document.addEventListener('contextmenu', handleContextMenu, true);
     window.addEventListener('blur', handleWindowBlur);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('keyup', handleKeyUp, true);
       document.removeEventListener('contextmenu', handleContextMenu, true);
       window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -95,7 +108,7 @@ export function ScreenShieldOverlay() {
       onClick={unlockShield}
       onWheel={unlockShield}
       onTouchStart={unlockShield}
-      className="fixed inset-0 z-[99999] bg-[#060911]/98 backdrop-blur-2xl flex items-center justify-center p-4 select-none cursor-pointer"
+      className="fixed inset-0 z-[99999] bg-[#060911] flex items-center justify-center p-4 select-none cursor-pointer"
     >
       <div className="max-w-lg w-full glass-strong border border-[#00F5FF]/40 rounded-2xl p-8 text-center space-y-6 shadow-[0_0_60px_rgba(0,245,255,0.2)]">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/40 flex items-center justify-center shadow-[0_0_25px_rgba(0,245,255,0.25)]">
@@ -112,7 +125,7 @@ export function ScreenShieldOverlay() {
             SECURITY SHIELD <span className="text-[#00F5FF]">ACTIVE</span>
           </h2>
           <p className="text-sm text-[#94A3B8] fira-code">
-            Active capture or DevTools shortcut intercepted (PrintScreen / F12 / DevTools / View Source).
+            {POLICY_MESSAGE}
           </p>
         </div>
 
@@ -125,7 +138,7 @@ export function ScreenShieldOverlay() {
             &gt; TRIGGER_VECTOR: <span className="text-[#39FF14]">{vector}</span>
           </div>
           <div className="text-gray-400">
-            &gt; CLIPBOARD_POLICY: <span className="text-[#39FF14]">ENFORCED (NO PROMPT)</span>
+            &gt; POLICY_STATUS: <span className="text-[#39FF14]">ENFORCED</span>
           </div>
         </div>
 
