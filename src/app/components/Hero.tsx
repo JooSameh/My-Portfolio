@@ -24,14 +24,14 @@ const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
 });
 
 const FLOATING_SHAPES = [
-  { left: 12, top: 18, x: 8, duration: 9, delay: 0.2, rounded: true },
-  { left: 84, top: 24, x: -9, duration: 11, delay: 0.8, rounded: false },
-  { left: 28, top: 76, x: 6, duration: 10, delay: 1.4, rounded: true },
-  { left: 72, top: 68, x: -7, duration: 12, delay: 0.5, rounded: false },
-  { left: 48, top: 14, x: 9, duration: 8.5, delay: 1.1, rounded: true },
-  { left: 91, top: 82, x: -6, duration: 13, delay: 1.7, rounded: false },
-  { left: 8, top: 56, x: 7, duration: 9.5, delay: 0.4, rounded: false },
-  { left: 61, top: 88, x: -8, duration: 10.5, delay: 1.9, rounded: true },
+  { left: '12%', top: '18%', x: 8, duration: 9, delay: 0.2, rounded: true },
+  { left: '84%', top: '24%', x: -9, duration: 11, delay: 0.8, rounded: false },
+  { left: '28%', top: '76%', x: 6, duration: 10, delay: 1.4, rounded: true },
+  { left: '72%', top: '68%', x: -7, duration: 12, delay: 0.5, rounded: false },
+  { left: '48%', top: '14%', x: 9, duration: 8.5, delay: 1.1, rounded: true },
+  { left: '91%', top: '82%', x: -6, duration: 13, delay: 1.7, rounded: false },
+  { left: '8%', top: '56%', x: 7, duration: 9.5, delay: 0.4, rounded: false },
+  { left: '61%', top: '88%', x: -8, duration: 10.5, delay: 1.9, rounded: true },
 ];
 
 const STATS = [
@@ -57,10 +57,7 @@ const TECH_ICONS = [
 ];
 
 export function Hero() {
-  const sectionRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-  const avatarTiltRef = useRef<HTMLDivElement>(null);
-  const shapeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [showBgEffects, setShowBgEffects] = useState(false);
 
   const [profileImage] = useState<string>(() => {
@@ -88,79 +85,24 @@ export function Hero() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId) return;
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-      const glowX = clientX - 192;
-      const glowY = clientY - 192;
-
-      const rect = sectionRef.current?.getBoundingClientRect();
-      const width = Math.max(rect?.width || window.innerWidth, 1);
-      const height = Math.max(rect?.height || window.innerHeight, 1);
-      const localX = clientX - (rect?.left || 0);
-      const localY = clientY - (rect?.top || 0);
-
-      const normX = (localX / width - 0.5) * 2;
-      const normY = (localY / height - 0.5) * 2;
-      const rotateY = normX * 8;
-      const rotateX = -normY * 6;
-      const shiftX = normX * 10;
-      const shiftY = normY * 8;
-
-      const shapeOffsets = FLOATING_SHAPES.map((shape) => {
-        const sx = (shape.left / 100) * width;
-        const sy = (shape.top / 100) * height;
-        const dx = sx - localX;
-        const dy = sy - localY;
-        const dist = Math.hypot(dx, dy);
-        const maxRadius = 240;
-        if (dist < maxRadius && dist > 1) {
-          const force = (1 - dist / maxRadius) * 34;
-          return {
-            x: (dx / dist) * force,
-            y: (dy / dist) * force,
-          };
-        }
-        return { x: 0, y: 0 };
-      });
-
+      const x = e.clientX - 192;
+      const y = e.clientY - 192;
       rafId = requestAnimationFrame(() => {
         if (glowRef.current) {
-          glowRef.current.style.transform = `translate3d(${glowX}px, ${glowY}px, 0)`;
+          glowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
         }
-        if (avatarTiltRef.current) {
-          avatarTiltRef.current.style.transform = `translate3d(${shiftX}px, ${shiftY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        }
-        shapeOffsets.forEach((offset, idx) => {
-          const el = shapeRefs.current[idx];
-          if (el) {
-            el.style.transform = `translate3d(${offset.x}px, ${offset.y}px, 0)`;
-          }
-        });
         rafId = 0;
-      });
-    };
-
-    const handleMouseLeave = () => {
-      if (avatarTiltRef.current) {
-        avatarTiltRef.current.style.transform = 'translate3d(0px, 0px, 0) rotateX(0deg) rotateY(0deg)';
-      }
-      shapeRefs.current.forEach((el) => {
-        if (el) {
-          el.style.transform = 'translate3d(0px, 0px, 0)';
-        }
       });
     };
 
     if (hasFinePointer) {
       window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      document.addEventListener('mouseleave', handleMouseLeave);
     }
 
     return () => {
       clearTimeout(bgTimer);
       if (hasFinePointer) {
         window.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseleave', handleMouseLeave);
       }
       if (rafId) cancelAnimationFrame(rafId);
     };
@@ -174,10 +116,7 @@ export function Hero() {
   };
 
   return (
-    <section
-      ref={sectionRef}
-      className="min-h-screen flex items-center justify-center relative overflow-hidden"
-    >
+    <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Dynamic Cyberpunk Background */}
       <div className="absolute inset-0">
         {/* Base gradient */}
@@ -189,11 +128,11 @@ export function Hero() {
         {/* Interactive cursor glow */}
         <div
           ref={glowRef}
-          className="hidden md:block absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none transition-transform duration-150 ease-out will-change-transform"
+          className="hidden md:block absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none transition-transform duration-300 ease-out will-change-transform"
           style={{
             transform: 'translate3d(-400px, -400px, 0)',
             background:
-              'radial-gradient(circle, rgba(0, 245, 255, 0.18) 0%, rgba(0, 245, 255, 0.06) 35%, transparent 70%)',
+              'radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)',
           }}
         />
 
@@ -228,43 +167,36 @@ export function Hero() {
               ))}
             </div>
 
-            {/* Individual mouse-reactive floating geometric shapes */}
+            {/* Floating geometric shapes */}
             {FLOATING_SHAPES.map((shape, i) => (
-              <div
+              <m.div
                 key={i}
-                ref={(el) => {
-                  shapeRefs.current[i] = el;
-                }}
                 aria-hidden="true"
-                className="absolute pointer-events-none transition-transform duration-200 ease-out will-change-transform"
-                style={{ left: `${shape.left}%`, top: `${shape.top}%` }}
+                className="absolute will-change-transform"
+                style={{ left: shape.left, top: shape.top }}
+                animate={{
+                  y: [0, -30, 0],
+                  x: [0, shape.x, 0],
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: shape.duration,
+                  repeat: Infinity,
+                  delay: shape.delay,
+                  ease: 'easeInOut',
+                }}
               >
-                <m.div
-                  className="will-change-transform"
-                  animate={{
-                    y: [0, -30, 0],
-                    x: [0, shape.x, 0],
-                    rotate: [0, 360],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    duration: shape.duration,
-                    repeat: Infinity,
-                    delay: shape.delay,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  <div
-                    className={`w-4 h-4 ${
-                      i % 3 === 0
-                        ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40'
-                        : i % 3 === 1
-                        ? 'bg-[#39FF14]/20 border-[#39FF14]/40'
-                        : 'bg-[#B026FF]/20 border-[#B026FF]/40'
-                    } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
-                  />
-                </m.div>
-              </div>
+                <div
+                  className={`w-4 h-4 ${
+                    i % 3 === 0
+                      ? 'bg-[#00F5FF]/20 border-[#00F5FF]/40'
+                      : i % 3 === 1
+                      ? 'bg-[#39FF14]/20 border-[#39FF14]/40'
+                      : 'bg-[#B026FF]/20 border-[#B026FF]/40'
+                  } border ${shape.rounded ? 'rounded-full' : 'rounded-lg'} backdrop-blur-sm`}
+                />
+              </m.div>
             ))}
 
             {/* Large glowing orbs */}
@@ -457,12 +389,9 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right Content - Interactive 3D Profile Display */}
+          {/* Right Content - 3D Profile Display */}
           <div className="flex justify-center lg:justify-end perspective-1000">
-            <div
-              ref={avatarTiltRef}
-              className="relative preserve-3d transition-transform duration-150 ease-out will-change-transform"
-            >
+            <div className="relative preserve-3d">
               <m.div
                 className="relative"
                 animate={showBgEffects ? { rotateY: [0, 5, 0, -5, 0] } : undefined}
