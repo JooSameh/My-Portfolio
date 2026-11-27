@@ -1,11 +1,13 @@
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { Preloader } from './components/Preloader';
-import { ScreenShieldOverlay } from './components/ScreenShieldOverlay';
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 
+const ScreenShieldOverlay = lazy(() =>
+  import('./components/ScreenShieldOverlay').then((m) => ({ default: m.ScreenShieldOverlay }))
+);
 const About = lazy(() => import('./components/About').then((m) => ({ default: m.About })));
 const Education = lazy(() => import('./components/Education').then((m) => ({ default: m.Education })));
 const Experience = lazy(() => import('./components/Experience').then((m) => ({ default: m.Experience })));
@@ -81,15 +83,20 @@ function DeferredSection({
 export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [mountToaster, setMountToaster] = useState(false);
+  const [mountShield, setMountShield] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('cyber-shield-locked');
+
+    const activateShield = () => setMountShield(true);
+    const shieldTimer = window.setTimeout(activateShield, 1000);
 
     const enableToaster = () => setMountToaster(true);
 
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 500);
       setMountToaster(true);
+      setMountShield(true);
     };
 
     const POLICY_MESSAGE = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
@@ -118,14 +125,21 @@ export default function App() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('pointerdown', enableToaster, { once: true, passive: true });
+    window.addEventListener('pointerdown', activateShield, { once: true, passive: true });
+    window.addEventListener('keydown', activateShield, { once: true, capture: true });
+    window.addEventListener('touchstart', activateShield, { once: true, passive: true });
     document.addEventListener('copy', handleCopyOrCut, true);
     document.addEventListener('cut', handleCopyOrCut, true);
     document.addEventListener('selectstart', handleSelectStart, true);
     document.addEventListener('dragstart', handleDragStart, true);
 
     return () => {
+      clearTimeout(shieldTimer);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('pointerdown', enableToaster);
+      window.removeEventListener('pointerdown', activateShield);
+      window.removeEventListener('keydown', activateShield, true);
+      window.removeEventListener('touchstart', activateShield);
       document.removeEventListener('copy', handleCopyOrCut, true);
       document.removeEventListener('cut', handleCopyOrCut, true);
       document.removeEventListener('selectstart', handleSelectStart, true);
@@ -141,7 +155,11 @@ export default function App() {
     <LazyMotion features={domAnimation} strict>
       <div className="min-h-screen bg-[#0A0F1C] text-[#E2E8F0] overflow-x-hidden">
         <Preloader />
-        <ScreenShieldOverlay />
+        {mountShield && (
+          <Suspense fallback={null}>
+            <ScreenShieldOverlay />
+          </Suspense>
+        )}
         <Header />
         <main>
           <Hero />
