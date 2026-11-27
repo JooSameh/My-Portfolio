@@ -10,19 +10,29 @@ export function ScreenShieldOverlay() {
   const isLockedRef = useRef(false);
   const lockTimestampRef = useRef<number>(0);
 
-  // Silent clipboard overwrite without triggering Chrome's permission prompt
-  const overwriteClipboardSilent = useCallback(() => {
+  const overwriteClipboard = useCallback(() => {
     const policyText = 'SECURITY POLICY: Screen capture is protected on Youssef EL-Gendy Portfolio.';
-    try {
-      const tempArea = document.createElement('textarea');
-      tempArea.value = policyText;
-      tempArea.setAttribute('readonly', '');
-      tempArea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
-      document.body.appendChild(tempArea);
-      tempArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(tempArea);
-    } catch {}
+
+    const writePolicy = () => {
+      try {
+        const tempArea = document.createElement('textarea');
+        tempArea.value = policyText;
+        tempArea.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempArea);
+      } catch {}
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(policyText).catch(() => {});
+        }
+      } catch {}
+    };
+
+    writePolicy();
+    window.setTimeout(writePolicy, 100);
   }, []);
 
   const restoreDisplay = useCallback(() => {
@@ -48,7 +58,7 @@ export function ScreenShieldOverlay() {
       if (navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices) {
         navigator.mediaDevices.getDisplayMedia = async () => {
           engageShield('recording_blocked');
-          overwriteClipboardSilent();
+          overwriteClipboard();
           throw new DOMException('Screen recording is disabled by security policy.', 'NotAllowedError');
         };
       }
@@ -75,7 +85,7 @@ export function ScreenShieldOverlay() {
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length >= 3) {
         engageShield('multitouch');
-        overwriteClipboardSilent();
+        overwriteClipboard();
       }
     };
 
@@ -132,7 +142,7 @@ export function ScreenShieldOverlay() {
         e.preventDefault();
         e.stopPropagation();
         engageShield('shortcut');
-        overwriteClipboardSilent();
+        overwriteClipboard();
         return;
       }
 
@@ -184,7 +194,7 @@ export function ScreenShieldOverlay() {
         }
       } catch {}
     };
-  }, [engageShield, restoreDisplay, overwriteClipboardSilent]);
+  }, [engageShield, restoreDisplay, overwriteClipboard]);
 
   const reasonMessage =
     triggerReason === 'recording_blocked'
