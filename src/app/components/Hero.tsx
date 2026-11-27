@@ -4,14 +4,12 @@ import {
 } from 'lucide-react';
 import { m } from 'motion/react';
 
-const MATRIX_CHARS = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-const BINARY_CHARS = '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101';
+const BINARY_STREAM =
+  '01010011010001010100001101010101010100100100001101001001010101010100010101000101010101101100101001110100010101100101010010011001101010101100110010101010011010100101011101010100';
 
 const MATRIX_COLUMNS = Array.from({ length: 25 }, (_, i) => {
   const chars = Array.from({ length: 18 }, (_, j) =>
-    i % 2 === 0
-      ? MATRIX_CHARS[(i + j) % MATRIX_CHARS.length]
-      : BINARY_CHARS[(i * 2 + j) % BINARY_CHARS.length]
+    BINARY_STREAM[(i * 7 + j * 3) % BINARY_STREAM.length]
   ).join('\n');
 
   return {
@@ -60,6 +58,7 @@ const TECH_ICONS = [
 
 export function Hero() {
   const glowRef = useRef<HTMLDivElement>(null);
+  const avatarTiltRef = useRef<HTMLDivElement>(null);
   const [showBgEffects, setShowBgEffects] = useState(false);
 
   const [profileImage] = useState<string>(() => {
@@ -87,24 +86,45 @@ export function Hero() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId) return;
-      const x = e.clientX - 192;
-      const y = e.clientY - 192;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      const glowX = clientX - 192;
+      const glowY = clientY - 192;
+
+      const normX = (clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
+      const normY = (clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      const rotateY = normX * 8;
+      const rotateX = -normY * 6;
+      const shiftX = normX * 10;
+      const shiftY = normY * 8;
+
       rafId = requestAnimationFrame(() => {
         if (glowRef.current) {
-          glowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          glowRef.current.style.transform = `translate3d(${glowX}px, ${glowY}px, 0)`;
+        }
+        if (avatarTiltRef.current) {
+          avatarTiltRef.current.style.transform = `translate3d(${shiftX}px, ${shiftY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         }
         rafId = 0;
       });
     };
 
+    const handleMouseLeave = () => {
+      if (avatarTiltRef.current) {
+        avatarTiltRef.current.style.transform = 'translate3d(0px, 0px, 0) rotateX(0deg) rotateY(0deg)';
+      }
+    };
+
     if (hasFinePointer) {
       window.addEventListener('mousemove', handleMouseMove, { passive: true });
+      document.addEventListener('mouseleave', handleMouseLeave);
     }
 
     return () => {
       clearTimeout(bgTimer);
       if (hasFinePointer) {
         window.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseleave', handleMouseLeave);
       }
       if (rafId) cancelAnimationFrame(rafId);
     };
@@ -130,17 +150,17 @@ export function Hero() {
         {/* Interactive cursor glow */}
         <div
           ref={glowRef}
-          className="hidden md:block absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none transition-transform duration-300 ease-out will-change-transform"
+          className="hidden md:block absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none transition-transform duration-150 ease-out will-change-transform"
           style={{
             transform: 'translate3d(-400px, -400px, 0)',
             background:
-              'radial-gradient(circle, rgba(0, 245, 255, 0.15) 0%, rgba(0, 245, 255, 0.05) 30%, transparent 70%)',
+              'radial-gradient(circle, rgba(0, 245, 255, 0.18) 0%, rgba(0, 245, 255, 0.06) 35%, transparent 70%)',
           }}
         />
 
         {showBgEffects && (
           <>
-            {/* Matrix Rain Effect */}
+            {/* Binary Matrix Rain Effect */}
             <div
               className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none select-none"
               aria-hidden="true"
@@ -391,9 +411,12 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right Content - 3D Profile Display */}
+          {/* Right Content - Interactive 3D Profile Display */}
           <div className="flex justify-center lg:justify-end perspective-1000">
-            <div className="relative preserve-3d">
+            <div
+              ref={avatarTiltRef}
+              className="relative preserve-3d transition-transform duration-150 ease-out will-change-transform"
+            >
               <m.div
                 className="relative"
                 animate={showBgEffects ? { rotateY: [0, 5, 0, -5, 0] } : undefined}
